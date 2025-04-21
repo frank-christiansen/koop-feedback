@@ -104,7 +104,6 @@ export async function GET(req: NextRequest) {
     }
     const users = await getUsers()
 
-
     const sessionData = {
         SessionId: session.SessionId,
         Code: session.Code,

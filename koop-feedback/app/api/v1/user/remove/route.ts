@@ -35,6 +35,13 @@ export async function DELETE(req: NextRequest) {
         )
     }
 
+    if (!user.IsHost) {
+        return NextResponse.json(
+            { error: true },
+            { status: 401 }
+        )
+    }
+
     const userId = req.url.split("=")[1]
 
     const userToRemove = await userDB.findOne({ UserId: userId, SessionId: sessionId })
@@ -58,7 +65,7 @@ export async function DELETE(req: NextRequest) {
         )
     }
 
-    await userDB.deleteOne({ UserId: userId, SessionId: sessionId })
+    await userDB.deleteMany({ UserId: userId, SessionId: sessionId })
     await sessionDB.findOneAndUpdate({ SessionId: sessionId }, { $pull: { Users: userId } })
 
     return NextResponse.json(
