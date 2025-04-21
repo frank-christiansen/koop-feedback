@@ -1,7 +1,7 @@
 "use server";
-import { model, Schema } from "mongoose";
+import { model, models, Schema } from "mongoose";
 
-export const sessionDB = model(
+export const userDB = models.user || model(
     "user",
     new Schema({
         UserId: { type: String, required: true },

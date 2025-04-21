@@ -1,7 +1,7 @@
 "use server";
-import { model, Schema } from "mongoose";
+import { model, models, Schema } from "mongoose";
 
-export const sessionDB = model(
+export const sessionDB = models.session || model(
     "session",
     new Schema({
         Users: { type: [String], required: true },
@@ -10,4 +10,4 @@ export const sessionDB = model(
         Host: { type: String, required: true },
         CreatedAt: { type: Date, default: Date.now },
     })
-);
+)  

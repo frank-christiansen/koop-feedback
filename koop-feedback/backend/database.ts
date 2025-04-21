@@ -3,7 +3,7 @@
 import mongoose from "mongoose";
 
 export async function connectToDatabase() {
-    const dbURI = process.env.MONGODB_URI || "mongodb://localhost:27017/mydatabase";
+    const dbURI = process.env.MONGODB_URL || "mongodb://localhost:27017/mydatabase";
 
     try {
         await mongoose.connect(dbURI, {

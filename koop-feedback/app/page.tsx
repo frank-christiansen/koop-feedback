@@ -1,3 +1,5 @@
+"use client";
+import { CreateSession } from "@/components/app/createSession";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,57 +13,68 @@ import { Label } from "@/components/ui/label";
 import { Github, LogIn, Plus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function Home() {
+  const [showCreateSession, setShowCreateSession] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 to-indigo-800 flex flex-col">
       {/* Main Content */}
       <main className="flex-grow flex items-center justify-center px-4">
         <div className="w-full max-w-md space-y-6">
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-            <CardHeader>
-              <CardTitle className="text-white text-2xl">
-                Welcome to Koop-Feedback
-              </CardTitle>
-              <CardDescription className="text-white/80">
-                Create or join a feedback session
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button className="w-full bg-indigo-600 hover:bg-indigo-700 h-12 cursor-pointer">
-                <Plus className="mr-2 h-4 w-4" />
-                Create New Session
-              </Button>
+          {showCreateSession ? (
+            <CreateSession />
+          ) : (
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+              <CardHeader>
+                <CardTitle className="text-white text-2xl">
+                  Welcome to Koop Feedback
+                </CardTitle>
+                <CardDescription className="text-white/80">
+                  Create or join a feedback session.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 h-12 cursor-pointer"
+                  onClick={() => setShowCreateSession(true)}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create New Session
+                </Button>
 
-              <div className="relative">
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-transparent px-2 text-white/60">
-                    Or join with code
-                  </span>
+                {/* Rest des existierenden Codes für Join Session */}
+                <div className="relative">
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-transparent px-2 text-white/60">
+                      Or join with code
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="code" className="text-white">
-                  Session Code
-                </Label>
-                <div className="flex space-x-2">
-                  <Input
-                    id="code"
-                    placeholder="Enter 6-digit code"
-                    className="bg-white/10 border-white/20 text-white placeholder-white/50"
-                  />
-                  <Button
-                    variant="outline"
-                    className="text-white border-white bg-white/10 cursor-pointer"
-                  >
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Join
-                  </Button>
+                <div className="space-y-2">
+                  <Label htmlFor="code" className="text-white">
+                    Session Code
+                  </Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      id="code"
+                      placeholder="Enter 6-digit code"
+                      className="bg-white/10 border-white/20 text-white placeholder-white/50"
+                    />
+                    <Button
+                      variant="outline"
+                      className="text-white border-white bg-white/10 cursor-pointer"
+                    >
+                      <LogIn className="mr-2 h-4 w-4" />
+                      Join
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
 
