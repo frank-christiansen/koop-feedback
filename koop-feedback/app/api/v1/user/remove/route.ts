@@ -61,8 +61,8 @@ export async function DELETE(req: NextRequest) {
     await userDB.deleteOne({ UserId: userId, SessionId: sessionId })
     await sessionDB.findOneAndUpdate({ SessionId: sessionId }, { $pull: { Users: userId } })
 
-
-
-
-
+    return NextResponse.json(
+        { success: true },
+        { status: 200 }
+    )
 }

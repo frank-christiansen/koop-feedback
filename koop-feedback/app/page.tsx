@@ -1,5 +1,6 @@
 "use client";
 import { CreateSession } from "@/components/app/createSession";
+import JoinSession from "@/components/app/joinSession";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -53,25 +54,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="code" className="text-white">
-                    Session Code
-                  </Label>
-                  <div className="flex space-x-2">
-                    <Input
-                      id="code"
-                      placeholder="Enter 6-digit code"
-                      className="bg-white/10 border-white/20 text-white placeholder-white/50"
-                    />
-                    <Button
-                      variant="outline"
-                      className="text-white border-white bg-white/10 cursor-pointer"
-                    >
-                      <LogIn className="mr-2 h-4 w-4" />
-                      Join
-                    </Button>
-                  </div>
-                </div>
+                <JoinSession />
               </CardContent>
             </Card>
           )}

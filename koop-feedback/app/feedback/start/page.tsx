@@ -17,6 +17,7 @@ import {
   Share2,
   Copy,
   MoreVertical,
+  Trash,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -208,8 +209,50 @@ export default function SessionPage() {
                           {participant.Name}
                         </h3>
                       </div>
-                      {participant.IsHost && (
+                      {participant.IsHost ? (
                         <Crown className="text-yellow-400 h-5 w-5" />
+                      ) : (
+                        <Trash
+                          onClick={() => {
+                            fetch(
+                              "/api/v1/user/remove?user=" + participant.UserId,
+                              {
+                                method: "DELETE",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                              }
+                            )
+                              .then((res) => {
+                                if (!res.ok) {
+                                  throw new Error(
+                                    "Failed to remove participant"
+                                  );
+                                }
+                                return res.json();
+                              })
+                              .then(() => {
+                                setSession((prevSession) => {
+                                  if (!prevSession) return prevSession;
+                                  return {
+                                    ...prevSession,
+                                    Users: prevSession.Users.filter(
+                                      (user) =>
+                                        user.UserId !== participant.UserId
+                                    ),
+                                  };
+                                });
+                              })
+                              .catch((error) => {
+                                toast(error.message, {
+                                  type: "error",
+                                  position: "top-right",
+                                  autoClose: 5000,
+                                });
+                              });
+                          }}
+                          className="text-red-400 h-5 w-5"
+                        />
                       )}
                     </div>
                   ))}
