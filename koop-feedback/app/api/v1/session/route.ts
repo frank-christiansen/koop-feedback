@@ -28,7 +28,8 @@ export async function POST(req: NextRequest) {
         Name: name,
         IsHost: true,
         UserVotedForThisUser: [],
-        Feedback: []
+        Feedback: [],
+
     }
 
     const sessionData = {
@@ -36,6 +37,8 @@ export async function POST(req: NextRequest) {
         SessionId: sessionUUID,
         Code: Math.floor(1000 + Math.random() * 9000),
         Host: userUUID,
+        IsStrarted: false,
+        IsFinished: false,
     }
 
     await userDB.create(userData)

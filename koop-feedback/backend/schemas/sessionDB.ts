@@ -9,5 +9,7 @@ export const sessionDB = models.session || model(
         Code: { type: Number, required: true },
         Host: { type: String, required: true },
         CreatedAt: { type: Date, default: Date.now },
+        IsStarted: { type: Boolean, default: false },
+        IsFinished: { type: Boolean, default: false },
     })
 )  

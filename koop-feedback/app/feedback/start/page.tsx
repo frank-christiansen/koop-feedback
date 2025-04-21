@@ -55,6 +55,9 @@ export default function SessionPage() {
     const fetchSession = async () => {
       try {
         // Simuliere API-Aufruf
+
+        if (session) return;
+
         const req = await fetch("/api/v1/session", {
           method: "GET",
           headers: {
@@ -103,13 +106,6 @@ export default function SessionPage() {
     if (!session) return;
     navigator.clipboard.writeText(session.Code.toString());
     toast.success("Session code copied to clipboard");
-  };
-
-  const sendFeedback = () => {
-    if (!feedback.trim()) return;
-
-    toast.success("Feedback sent to host");
-    setFeedback("");
   };
 
   const startSession = () => {
@@ -162,28 +158,6 @@ export default function SessionPage() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Host Section */}
-          <div className="lg:col-span-1">
-            <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-              <CardHeader>
-                <div className="flex items-center space-x-3">
-                  <Crown className="h-5 w-5 text-yellow-400" />
-                  <CardTitle className="text-white">Session Host</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center space-x-4">
-                  <div>
-                    <h3 className="text-white font-medium">
-                      {session.Host.Name}
-                    </h3>
-                    <p className="text-white/60 text-sm">Host</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>{" "}
-          </div>
-
           {/* QR Code for code */}
           <div className="lg:col-span-1">
             <Card className="bg-white/10 backdrop-blur-sm border-white/20">
@@ -196,7 +170,7 @@ export default function SessionPage() {
               <CardContent className="flex justify-center items-center h-48">
                 <div className="bg-white/10 p-4 rounded-lg shadow-lg">
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?data=${session.Code}&size=200x200`}
+                    src={`https://api.qrserver.com/v1/create-qr-code/?data=${window.location.host}?join=${session.Code}&size=1000x1000`}
                     alt="QR Code"
                     className="w-32 h-32"
                   />
@@ -211,7 +185,7 @@ export default function SessionPage() {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle className="text-white">
-                    Participants ({session.Users.length + 1})
+                    Participants ({session.Users.length})
                   </CardTitle>
                   <Button
                     className="bg-indigo-600 hover:bg-indigo-700"
@@ -223,15 +197,6 @@ export default function SessionPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* Host in participants list */}
-                  {/* <div className="flex items-center p-3 bg-white/5 rounded-lg">
-                    <div className="ml-4 flex-1">
-                      <h3 className="text-white font-medium">{session.Host}</h3>
-                      <p className="text-white/60 text-sm">Host</p>
-                    </div>
-                    <Crown className="h-5 w-5 text-yellow-400" />
-                  </div> */}
-
                   {/* Other participants */}
                   {session.Users.map((participant: User) => (
                     <div
@@ -243,13 +208,9 @@ export default function SessionPage() {
                           {participant.Name}
                         </h3>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-white/60 hover:text-white"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
+                      {participant.IsHost && (
+                        <Crown className="text-yellow-400 h-5 w-5" />
+                      )}
                     </div>
                   ))}
                 </div>
