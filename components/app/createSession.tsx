@@ -28,7 +28,6 @@ export function CreateSession() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `${process.env.API_KEY}`,
       },
       body: JSON.stringify({
         name: name.trim(),
