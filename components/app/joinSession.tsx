@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LogIn, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 export default function JoinSession() {
   const [code, setCode] = useState<string>("");
@@ -12,6 +13,7 @@ export default function JoinSession() {
 
   useEffect(() => {
     const code = window.location.href.split("?join=")[1];
+    setShowUserNameInput(!!code);
     setCode(code);
   }, []);
 
@@ -73,10 +75,10 @@ export default function JoinSession() {
                       if (res.status === 200) {
                         window.location.href = "/feedback/start";
                       } else {
-                        alert("Error joining session. Please try again.");
+                        toast.error("Error joining session. Please try again.");
                       }
                     } else {
-                      alert("Please enter a valid name.");
+                      toast.error("Please enter a valid name.");
                     }
                   }}
                   variant="outline"

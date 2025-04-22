@@ -76,7 +76,7 @@ export default function SessionPage() {
     }
   }
 
-  const logout = async () => {
+  const logoutSession = async () => {
     const req = await fetch("/api/v1/user/logout", {
       method: "POST",
       headers: {
@@ -137,7 +137,7 @@ export default function SessionPage() {
       <div className="mt-6 flex flex-col sm:flex-row sm:space-x-4 items-center justify-center">
         <Button
           className="mt-6 sm:mt-0 bg-red-800 hover:bg-red-700 text-white w-full sm:w-auto hover:shadow-lg transition duration-300 ease-in-out"
-          onClick={() => logout()}
+          onClick={() => logoutSession()}
         >
           <MessageCircleWarning /> Logout & Delete Session
         </Button>
