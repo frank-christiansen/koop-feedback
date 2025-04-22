@@ -9,14 +9,6 @@ export async function DELETE(req: NextRequest) {
 
     await connectToDatabase();
 
-    const origin = req.headers.get("origin");
-
-    if (origin !== process.env.ALLOWED_API_URL) {
-        return NextResponse.json(
-            { error: "Unauthorized" },
-            { status: 401 }
-        )
-    }
 
     const sessionId = req.cookies.get("sessionId")?.value
     const authId = req.cookies.get("authId")?.value

@@ -11,14 +11,6 @@ export async function POST(req: NextRequest) {
 
     await connectToDatabase();
 
-    const origin = req.headers.get("origin");
-
-    if (origin !== process.env.ALLOWED_API_URL) {
-        return NextResponse.json(
-            { error: "Unauthorized" },
-            { status: 401 }
-        )
-    }
 
 
     const cookie = await cookies()

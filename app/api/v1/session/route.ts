@@ -7,17 +7,10 @@ import { sessionDB } from "@/backend/schemas/sessionDB";
 import { userDB } from "@/backend/schemas/userDB";
 import { cookies } from "next/headers";
 import { log } from "console";
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export async function POST(req: NextRequest) {
     await connectToDatabase();
-    const origin = req.headers.get("origin");
-
-    if (origin != process.env.ALLOWED_API_URL) {
-        return NextResponse.json(
-            { error: "Unauthorized" },
-            { status: 401 }
-        )
-    }
 
     const { name } = await req.json();
 
@@ -66,17 +59,9 @@ export async function POST(req: NextRequest) {
 
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(req: NextRequest,) {
     await connectToDatabase();
 
-    const origin = req.headers.get("origin");
-
-    if (origin !== process.env.ALLOWED_API_URL) {
-        return NextResponse.json(
-            { error: "Unauthorized" },
-            { status: 401 }
-        )
-    }
     const cookie = await cookies()
     const sessionId = cookie.get("sessionId")?.value
     const userId = cookie.get("userId")?.value
