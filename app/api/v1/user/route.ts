@@ -11,7 +11,9 @@ export async function GET(req: NextRequest) {
 
     await connectToDatabase();
 
-    if (req.url.split("/")[2] != process.env.ALLWOED_API_URL) {
+    const origin = req.headers.get("origin");
+
+    if (origin !== process.env.ALLOWED_API_URL) {
         return NextResponse.json(
             { error: "Unauthorized" },
             { status: 401 }
