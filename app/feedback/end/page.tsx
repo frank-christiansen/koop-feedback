@@ -35,10 +35,12 @@ export default function SessionPage() {
       });
 
       const user = await userreq.json();
-      console.log(user);
 
       setUser(user.user);
       const res = await req.json();
+
+      console.log(res.feedback);
+
       setFeedbacks(res.feedback);
       setIsLoading(false);
     };
@@ -93,22 +95,42 @@ export default function SessionPage() {
         <p className="text-white/60">Noch kein Feedback vorhanden.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {feedbacks.map((fb) => (
-            <Card
-              key={fb.Id}
-              className="bg-white/10 backdrop-blur-sm border border-white/20 shadow-md"
-            >
-              <CardHeader>
-                <CardTitle className="text-white">{fb.Type}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-white/80 mb-2">{fb.Description}</p>
-                <p className="text-xs text-white/40 mt-1">
-                  Created at: {new Date(fb.CreatedAt).toLocaleString()}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+          {feedbacks.map((fb) => {
+            const isPositive = fb.Type === "positive";
+            const cardColor = isPositive ? "bg-green-500" : "bg-red-500";
+            const typeLabel =
+              fb.Type.charAt(0).toUpperCase() + fb.Type.slice(1);
+            const createdAt = new Date(fb.CreatedAt).toLocaleString();
+
+            return (
+              <Card
+                key={fb.Id}
+                className={`rounded-2xl p-3 shadow-xl border border-white/20 backdrop-blur-md text-white transition-all hover:scale-[1.01] ${cardColor}`}
+              >
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold flex items-center gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-4 h-4 rounded-full bg-white/80 animate-pulse shadow-sm flex items-center justify-center" />
+                      <span>{typeLabel}</span>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-white/90 flex items-center gap-2">
+                      Feedback
+                    </span>
+                    <p className="text-base font-light leading-relaxed text-white/95 flex items-center gap-2">
+                      {fb.Description}
+                    </p>
+                  </div>
+                  <div className="pt-2 border-t border-white/30 text-xs text-white/70">
+                    <span>Submitted on: {createdAt}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 
@@ -117,15 +139,14 @@ export default function SessionPage() {
           className="mt-6 sm:mt-0 bg-red-800 hover:bg-red-700 text-white w-full sm:w-auto hover:shadow-lg transition duration-300 ease-in-out"
           onClick={() => logout()}
         >
-          <MessageCircleWarning></MessageCircleWarning> Logout & Delete Session
+          <MessageCircleWarning /> Logout & Delete Session
         </Button>
         {user.IsHost && (
           <Button
             className="mt-6 sm:mt-0 bg-red-800 hover:bg-red-700 text-white w-full sm:w-auto hover:shadow-lg transition duration-300 ease-in-out"
             onClick={() => deleteData()}
           >
-            <MessageCircleWarning></MessageCircleWarning> Delete the Session
-            Data
+            <MessageCircleWarning /> Delete the Session Data
           </Button>
         )}
       </div>

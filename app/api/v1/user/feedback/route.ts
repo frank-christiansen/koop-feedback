@@ -81,6 +81,15 @@ export async function POST(req: NextRequest) {
     const { type, description, feedbackUser, userSessionId } = await req.json();
     const feedbackId = uuid();
 
+    
+
+    if (description.length <= 0) {
+        return NextResponse.json(
+            { error: "Description cannot be empty" },
+            { status: 400 }
+        )
+    }
+
     const feedback = {
         Type: type,
         Description: description,

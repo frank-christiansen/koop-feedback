@@ -14,6 +14,13 @@ export async function POST(req: NextRequest) {
 
     const { code, name } = await req.json();
 
+    if (!code || !name) {
+        return NextResponse.json(
+            { error: "Code and name are required" },
+            { status: 400 }
+        )
+    }
+
     const userUUID = uuid();
 
     const session = await sessionDB.findOne({

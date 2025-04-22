@@ -145,7 +145,7 @@ export default function SessionPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          tite: feedback.Type,
+          type: feedback.Type,
           description: feedback.Description,
           userSessionId: session?.SessionId,
           feedbackUser: feedback.forUser.UserId,
