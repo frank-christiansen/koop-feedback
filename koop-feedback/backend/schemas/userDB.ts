@@ -5,6 +5,7 @@ export const userDB = models.user || model(
     "user",
     new Schema({
         UserId: { type: String, required: true },
+        AuthId: { type: String, required: true },
         SessionId: { type: String, required: true },
         Name: { type: String, required: true },
         IsHost: { type: Boolean, required: true },
@@ -15,6 +16,7 @@ export const userDB = models.user || model(
                 Title: { type: String, required: true },
                 Description: { type: String, required: true },
                 CreatedAt: { type: Date, default: Date.now },
+                Id: { type: String, required: true },
             }
         ]
     })

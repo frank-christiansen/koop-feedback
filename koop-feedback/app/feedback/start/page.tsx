@@ -29,6 +29,8 @@ export interface Session {
   Code: number;
   Host: User;
   CreatedAt: Date;
+  IsStarted: boolean;
+  IsFinished: boolean;
 }
 
 export interface User {
@@ -47,18 +49,14 @@ export interface User {
 
 export default function SessionPage() {
   const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [feedback, setFeedback] = useState("");
   const router = useRouter();
 
-  // Mock data - in einer echten App würdest du dies von der API holen
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        // Simuliere API-Aufruf
-
-        if (session) return;
-
         const req = await fetch("/api/v1/session", {
           method: "GET",
           headers: {
@@ -67,7 +65,8 @@ export default function SessionPage() {
         });
 
         if (!req.ok) {
-          throw new Error("Failed to fetch session data");
+          window.location.href = "/";
+          return;
         }
         const data = await req.json();
 
@@ -79,7 +78,8 @@ export default function SessionPage() {
         });
 
         if (!userReq.ok) {
-          throw new Error("Failed to fetch user data");
+          window.location.href = "/";
+          return;
         }
         const userData = await userReq.json();
 
@@ -89,8 +89,16 @@ export default function SessionPage() {
           Code: data.session.Code,
           Host: userData,
           CreatedAt: data.session.CreatedAt,
+          IsStarted: data.session.IsStarted,
+          IsFinished: data.session.IsFinished,
         };
 
+        if (mockSession.IsStarted) {
+          window.location.href = "/feedback/run";
+          return;
+        }
+
+        setUser(data.user);
         setSession(mockSession);
       } catch (error) {
         toast.error("Failed to load session");
@@ -100,8 +108,15 @@ export default function SessionPage() {
       }
     };
 
+    // Direkt einmal ausführen
     fetchSession();
-  });
+
+    // Intervall alle 10 Sekunden
+    const interval = setInterval(fetchSession, 1000);
+
+    // Cleanup bei Unmount
+    return () => clearInterval(interval);
+  }, []);
 
   const copySessionCode = () => {
     if (!session) return;
@@ -109,9 +124,29 @@ export default function SessionPage() {
     toast.success("Session code copied to clipboard");
   };
 
-  const startSession = () => {
-    toast.success("Session started!");
-    //   Start Session Logic Here
+  const startSession = async () => {
+    const req = await fetch("/api/v1/session/start", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await req.json();
+    if (req.status !== 200) {
+      toast(data.error, {
+        type: "error",
+        position: "top-right",
+        autoClose: 5000,
+      });
+      return;
+    }
+
+    toast("Session started", {
+      type: "info",
+      position: "top-right",
+      autoClose: 5000,
+    });
   };
 
   if (isLoading) {
@@ -230,18 +265,6 @@ export default function SessionPage() {
                                   );
                                 }
                                 return res.json();
-                              })
-                              .then(() => {
-                                setSession((prevSession) => {
-                                  if (!prevSession) return prevSession;
-                                  return {
-                                    ...prevSession,
-                                    Users: prevSession.Users.filter(
-                                      (user) =>
-                                        user.UserId !== participant.UserId
-                                    ),
-                                  };
-                                });
                               })
                               .catch((error) => {
                                 toast(error.message, {

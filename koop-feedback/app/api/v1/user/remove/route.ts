@@ -17,16 +17,17 @@ export async function DELETE(req: NextRequest) {
     }
 
     const sessionId = req.cookies.get("sessionId")?.value
+    const authId = req.cookies.get("authId")?.value
     const sessionUserId = req.cookies.get("userId")?.value
 
-    if (!sessionId || !sessionUserId) {
+    if (!sessionId || !sessionUserId || !authId) {
         return NextResponse.json(
             { error: true },
             { status: 401 }
         )
     }
 
-    const user = await userDB.findOne({ UserId: sessionUserId, SessionId: sessionId })
+    const user = await userDB.findOne({ UserId: sessionUserId, SessionId: sessionId, AuthId: authId })
 
     if (!user) {
         return NextResponse.json(
@@ -35,7 +36,7 @@ export async function DELETE(req: NextRequest) {
         )
     }
 
-    if (!user.IsHost) {
+    if (user.IsHost == false) {
         return NextResponse.json(
             { error: true },
             { status: 401 }

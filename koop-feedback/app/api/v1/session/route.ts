@@ -21,15 +21,16 @@ export async function POST(req: NextRequest) {
 
     const userUUID = uuid();
     const sessionUUID = uuid();
+    const authId = uuid();
 
     const userData = {
         UserId: userUUID,
         SessionId: sessionUUID,
+        AuthId: authId,
         Name: name,
         IsHost: true,
         UserVotedForThisUser: [],
         Feedback: [],
-
     }
 
     const sessionData = {
@@ -50,6 +51,9 @@ export async function POST(req: NextRequest) {
     })
     cookie.set("userId", userUUID, {
         expires: new Date(Date.now() + 60 * 60 * 60 * 10),
+    })
+    cookie.set("authId", authId, {
+        expires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
     })
 
     return NextResponse.json(
@@ -72,16 +76,22 @@ export async function GET(req: NextRequest) {
     const cookie = await cookies()
     const sessionId = cookie.get("sessionId")?.value
     const userId = cookie.get("userId")?.value
-    if (!sessionId || !userId) {
+    const authId = cookie.get("authId")?.value
+    if (!sessionId || !userId || !authId) {
         return NextResponse.json(
             { error: true },
             { status: 401 }
         )
     }
-    const session = await sessionDB.findOne({ SessionId: sessionId })
-    const user = await userDB.findOne({ UserId: userId })
+
+
+    const session = await sessionDB.findOne({ SessionId: sessionId, Users: userId })
+    const user = await userDB.findOne({ UserId: userId, SessionId: sessionId, AuthId: authId })
 
     if (!session || !user) {
+        cookie.delete("sessionId")
+        cookie.delete("userId")
+        cookie.delete("authId")
         return NextResponse.json(
             { error: true },
             { status: 401 }
@@ -109,6 +119,8 @@ export async function GET(req: NextRequest) {
         Code: session.Code,
         Host: session.Host,
         Users: users,
+        IsStarted: session.IsStarted,
+        IsFinished: session.IsFinished,
     }
     const userData = {
         UserId: user.UserId,
