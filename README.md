@@ -25,7 +25,6 @@ services:
     environment:
       - MONGODB_URL=<database>
       - MONGODB_DB_NAME=koop-feedback
-      - ALLWOED_API_URL=appURL
 ```
 
 ## 🌐 Web Server
