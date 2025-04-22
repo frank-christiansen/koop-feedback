@@ -145,11 +145,8 @@ export default function SessionPage() {
       return;
     }
 
-    let success = 0;
-
     feedbacks.forEach(async (feedback) => {
-      toast.success(`${feedbacks.length} feedback items submitted!`);
-      const req = await fetch("/api/v1/user/feedback", {
+      await fetch("/api/v1/user/feedback", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -161,19 +158,8 @@ export default function SessionPage() {
           feedbackUser: feedback.forUser.UserId,
         }),
       });
-
-      if (req.status === 200) {
-        success++;
-      }
     });
-
-    if (success === feedbacks.length) {
-      toast.success("All feedback submitted successfully!");
-    } else {
-      toast.error(
-        "Some feedback could not be submitted. (Success: " + success + ")"
-      );
-    }
+    toast.success(`${feedbacks.length} feedback items submitted!`);
 
     setFeedbacks([]);
   };
@@ -205,8 +191,10 @@ export default function SessionPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 to-indigo-800">
       <header className="py-4 px-6 border-b border-white/20 flex justify-between items-center">
         <div className="flex items-center space-x-2 mt-1">
+          <span className="text-white/80 text-sm">Session Code: Started</span>
+          <span className="text-white/80 text-sm">-</span>
           <span className="text-white/80 text-sm">
-            Session Code: {session.Code}
+            Logged in as: {user?.Name}
           </span>
         </div>
       </header>

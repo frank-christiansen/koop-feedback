@@ -79,12 +79,7 @@ export async function POST(req: NextRequest) {
             { status: 404 }
         )
     }
-    if (session.Host != userId) {
-        return NextResponse.json(
-            { error: "User is not host" },
-            { status: 401 }
-        )
-    }
+
     if (session.IsStarted == false) return NextResponse.json(
         { error: "Session already started" },
         { status: 400 }
