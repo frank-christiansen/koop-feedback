@@ -31,3 +31,6 @@ services:
 ## 🌐 Web Server
 
 On all webserver with git and nodejs support (and Vercel) you can simple clone the Repo and start the website with ``npm run build`` and ``npm run start``
+
+## 🍃 MongoDB
+Run it via the mongoDB Docker Image from the Docker Hub or run it at https://mongoDB.com for free.
