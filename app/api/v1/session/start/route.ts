@@ -13,9 +13,6 @@ export async function POST(req: NextRequest) {
 
     const origin = req.headers.get("origin");
 
-    console.log(origin);
-
-
     if (origin !== process.env.ALLOWED_API_URL) {
         return NextResponse.json(
             { error: "Unauthorized" },
