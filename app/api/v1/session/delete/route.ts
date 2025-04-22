@@ -57,13 +57,10 @@ export async function POST(req: NextRequest) {
     session.Users.forEach(async (user: string) => {
         const userData = await userDB.findOne({ UserId: user, SessionId: sessionId });
         if (userData) {
-            console.log("Deleting user data for user:", user);
             await userDB.deleteMany({ UserId: user, SessionId: sessionId });
         }
     })
-    await sessionDB.deleteMany({ SessionId: sessionId }).then(() => {
-        console.log("Session deleted successfully")
-    })
+    await sessionDB.deleteMany({ SessionId: sessionId })
 
     return NextResponse.json(
         { success: true },
