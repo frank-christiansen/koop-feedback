@@ -1,4 +1,5 @@
 "use client";
+import { dbData } from "@/backend/database";
 import { CreateSession } from "@/components/app/createSession";
 import JoinSession from "@/components/app/joinSession";
 import { Button } from "@/components/ui/button";
@@ -14,10 +15,17 @@ import { Label } from "@/components/ui/label";
 import { Github, LogIn, Plus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const [showCreateSession, setShowCreateSession] = useState(false);
+
+  useEffect(() => {
+    async function data() {
+      await dbData();
+    }
+    data();
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 to-indigo-800 flex flex-col">

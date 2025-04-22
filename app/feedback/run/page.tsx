@@ -3,15 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -20,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Crown, Trash, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, Crown, Trash, X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -37,6 +30,7 @@ export interface Session {
   CreatedAt: Date;
   IsStarted: boolean;
   IsFinished: boolean;
+  DoneUsers: string[];
 }
 
 export interface User {
@@ -46,15 +40,16 @@ export interface User {
   IsHost: boolean;
   CreatedAt: Date;
   UserVotedForThisUser: string[];
+  IsDone: boolean;
   Feedback: {
-    Title: string;
+    Type: string;
     Description: string;
     CreatedAt: Date;
   }[];
 }
 
 export interface Feedback {
-  Title: string;
+  Type: string;
   Description: string;
   Id: string;
   forUser: {
@@ -69,7 +64,7 @@ export default function SessionPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-  const [feedbackTitle, setFeedbackTitle] = useState("");
+  const [feedbackType, setFeedbackType] = useState("");
   const [feedbackDescription, setFeedbackDescription] = useState("");
   const [expandedUsers, setExpandedUsers] = useState<Record<string, boolean>>(
     {}
@@ -80,11 +75,8 @@ export default function SessionPage() {
     const fetchSession = async () => {
       try {
         const req = await fetch("/api/v1/session");
-        if (!req.ok) return (window.location.href = "/");
         const data = await req.json();
-
         const userReq = await fetch("/api/v1/user?user=" + data.session.Host);
-        if (!userReq.ok) return (window.location.href = "/");
         const userData = await userReq.json();
 
         const mockSession = {
@@ -95,6 +87,7 @@ export default function SessionPage() {
           CreatedAt: data.session.CreatedAt,
           IsStarted: data.session.IsStarted,
           IsFinished: data.session.IsFinished,
+          DoneUsers: data.session.DoneUsers,
         };
 
         if (mockSession.IsFinished)
@@ -115,10 +108,10 @@ export default function SessionPage() {
   }, []);
 
   const handleAddFeedback = async () => {
-    if (!selectedUser || !feedbackTitle.trim()) return;
+    if (!selectedUser || !feedbackType.trim()) return;
 
     const newFeedback = {
-      Title: feedbackTitle,
+      Type: feedbackType,
       Description: feedbackDescription,
       Id: Date.now().toString(),
       forUser: {
@@ -129,7 +122,7 @@ export default function SessionPage() {
 
     setFeedbacks((prev) => [...prev, newFeedback]);
     setSelectedUser(null);
-    setFeedbackTitle("");
+    setFeedbackType("");
     setFeedbackDescription("");
     toast.success("Feedback added!");
   };
@@ -146,20 +139,23 @@ export default function SessionPage() {
     }
 
     feedbacks.forEach(async (feedback) => {
-      await fetch("/api/v1/user/feedback", {
+      const req = await fetch("/api/v1/user/feedback", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          tite: feedback.Title,
+          tite: feedback.Type,
           description: feedback.Description,
           userSessionId: session?.SessionId,
           feedbackUser: feedback.forUser.UserId,
         }),
       });
+      const data = await req.json();
+      if (req.status === 200) {
+        toast.success(`${feedbacks.length} feedback items submitted!`);
+      } else toast.error(data.error);
     });
-    toast.success(`${feedbacks.length} feedback items submitted!`);
 
     setFeedbacks([]);
   };
@@ -199,6 +195,23 @@ export default function SessionPage() {
         </div>
       </header>
 
+      {user?.IsDone && user.UserId != session.Host.UserId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <Card className="bg-white/10 backdrop-blur-sm border border-white/20 shadow-2xl w-[90%] max-w-md">
+            <CardHeader>
+              <CardTitle className="text-white text-center">
+                Feedback already submitted
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-white text-center">
+                Please wait for the host to finish the session.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
@@ -223,12 +236,23 @@ export default function SessionPage() {
                       className="bg-white/5 rounded-lg overflow-hidden"
                     >
                       <div
-                        className={`p-3 flex items-center justify-between cursor-pointer ${
-                          selectedUser?.UserId === participant.UserId
+                        className={`p-3 flex items-center justify-between ${
+                          selectedUser?.UserId === participant.UserId &&
+                          !session.DoneUsers.includes(user?.UserId ?? "")
                             ? "bg-indigo-500/30"
                             : "hover:bg-white/10"
+                        } ${
+                          !session.DoneUsers.includes(user?.UserId ?? "")
+                            ? "cursor-pointer"
+                            : ""
                         }`}
-                        onClick={() => setSelectedUser(participant)}
+                        onClick={() => {
+                          if (session.DoneUsers.includes(user?.UserId ?? "")) {
+                            return;
+                          } else {
+                            setSelectedUser(participant);
+                          }
+                        }}
                       >
                         <div className="flex items-center space-x-3">
                           <div>
@@ -237,6 +261,14 @@ export default function SessionPage() {
                               {participant.IsHost && (
                                 <Crown className="text-yellow-400 h-4 w-4 ml-2" />
                               )}
+                              {session.Host.UserId == user?.UserId &&
+                                (session.DoneUsers.includes(
+                                  participant.UserId
+                                ) ? (
+                                  <Check className="text-green-400 h-4 w-4 ml-2"></Check>
+                                ) : (
+                                  <X className="text-red-400 h-4 w-4 ml-2" />
+                                ))}
                             </h3>
                           </div>
                         </div>
@@ -263,7 +295,7 @@ export default function SessionPage() {
                         >
                           <div>
                             <h4 className="text-white font-medium">
-                              {feedback.Title}
+                              {feedback.Type}
                             </h4>
                             <p className="text-white/70 text-sm">
                               {feedback.Description}
@@ -287,68 +319,98 @@ export default function SessionPage() {
                   <Button
                     className="w-full mt-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white"
                     onClick={handleSubmitAllFeedback}
-                    disabled={feedbacks.length === 0}
+                    disabled={
+                      feedbacks.length === 0 ||
+                      session.DoneUsers.includes(user?.UserId as string)
+                    }
                   >
-                    Submit all feedback ({feedbacks.length})
+                    Submit your feedback ({feedbacks.length})
                   </Button>
+                  {session.Host && session.Host.UserId == user?.UserId && (
+                    <Button
+                      className="w-full mt-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white"
+                      onClick={async () => {
+                        const req = await fetch("/api/v1/session/end", {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify({
+                            sessionId: session.SessionId,
+                          }),
+                        });
+                        if (req.status === 200) {
+                          toast.success("Session ended successfully!");
+                        } else {
+                          toast.error("Failed to end session");
+                        }
+                      }}
+                    >
+                      End Session
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </div>{" "}
         </div>
-        {session.Host && session.Host.UserId == user?.UserId && (
-          <Button
-            className="w-full mt-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white"
-            onClick={async () => {
-              const req = await fetch("/api/v1/session/end", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  sessionId: session.SessionId,
-                }),
-              });
-              if (req.status === 200) {
-                toast.success("Session ended successfully!");
-              } else {
-                toast.error("Failed to end session");
-              }
-            }}
-          >
-            End Session
-          </Button>
-        )}
       </main>
 
       {/* Feedback Modal */}
       <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
-        <DialogContent>
+        <DialogContent className="rounded-2xl shadow-xl border border-white/10 bg-[#1d112d]/80 backdrop-blur-md p-6">
           <DialogHeader>
-            <DialogTitle>Add feedback for {selectedUser?.Name}</DialogTitle>
+            <DialogTitle className="text-xl font-semibold text-white">
+              Feedback für {selectedUser?.Name}
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              placeholder="Title"
-              value={feedbackTitle}
-              onChange={(e) => setFeedbackTitle(e.target.value)}
-              className="bg-white/5 border-white/10"
-            />
+          <div className="space-y-4 pt-2">
+            <Select
+              onValueChange={(value) => setFeedbackType(value)}
+              defaultValue={feedbackType}
+            >
+              <SelectTrigger className="bg-white/5 border border-white/10 text-white hover:bg-[#aa77ff]/10 transition-all">
+                <SelectValue placeholder="Feedback-Typ wählen" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#1d112d]/80 backdrop-blur-sm border border-white/20 text-white rounded-xl">
+                <SelectItem
+                  value="positive"
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-[#aa77ff]/10 focus:bg-[#aa77ff]/10"
+                >
+                  <Check className="h-4 w-4 text-[#aa77ff]" />
+                  <span className="text-white">Positiv</span>
+                </SelectItem>
+                <SelectItem
+                  value="negative"
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-[#aa77ff]/10 focus:bg-[#aa77ff]/10"
+                >
+                  <X className="h-4 w-4 text-[#aa77ff]" />
+                  <span className="text-white">Negativ</span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
             <Textarea
-              placeholder="Description"
+              placeholder="Beschreibung eingeben..."
               value={feedbackDescription}
               onChange={(e) => setFeedbackDescription(e.target.value)}
-              className="bg-white/5 border-white/10 min-h-[100px]"
+              className="bg-white/5 border border-white/10 text-white placeholder-white/40 rounded-md p-3 min-h-[100px]"
             />
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setSelectedUser(null)}>
-                Cancel
+
+            <div className="flex justify-end space-x-2 pt-2">
+              <Button
+                variant="ghost"
+                className="border border-white/10 text-white hover:bg-white/10 transition-all"
+                onClick={() => setSelectedUser(null)}
+              >
+                Abbrechen
               </Button>
               <Button
                 onClick={handleAddFeedback}
-                disabled={!feedbackTitle.trim()}
+                disabled={!feedbackType.trim()}
+                className="bg-[#aa77ff] hover:bg-[#9d66cc] text-white transition-all"
               >
-                Add Feedback
+                Feedback abgeben
               </Button>
             </div>
           </div>

@@ -87,7 +87,7 @@ export default function SessionPage() {
           Users: data.session.Users,
           SessionId: data.session.SessionId,
           Code: data.session.Code,
-          Host: userData,
+          Host: userData.user,
           CreatedAt: data.session.CreatedAt,
           IsStarted: data.session.IsStarted,
           IsFinished: data.session.IsFinished,
@@ -206,7 +206,7 @@ export default function SessionPage() {
               <CardContent className="flex justify-center items-center h-48">
                 <div className="bg-white/10 p-4 rounded-lg shadow-lg">
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?data=${window.location.host}?join=${session.Code}&size=1000x1000`}
+                    src={`https://api.qrserver.com/v1/create-qr-code/?data=http://${window.location.host}?join=${session.Code}&size=1000x1000`}
                     alt="QR Code"
                     className="w-32 h-32"
                   />
@@ -223,12 +223,16 @@ export default function SessionPage() {
                   <CardTitle className="text-white">
                     Participants ({session.Users.length})
                   </CardTitle>
-                  <Button
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                    onClick={startSession}
-                  >
-                    Start Session
-                  </Button>
+                  {session.Host.UserId === user?.UserId &&
+                    !session.IsStarted && (
+                      <Button
+                        variant="default"
+                        className="bg-blue-500 text-white hover:bg-blue-600"
+                        onClick={startSession}
+                      >
+                        Start Session
+                      </Button>
+                    )}
                 </div>
               </CardHeader>
               <CardContent>
@@ -247,35 +251,38 @@ export default function SessionPage() {
                       {participant.IsHost ? (
                         <Crown className="text-yellow-400 h-5 w-5" />
                       ) : (
-                        <Trash
-                          onClick={() => {
-                            fetch(
-                              "/api/v1/user/remove?user=" + participant.UserId,
-                              {
-                                method: "DELETE",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                },
-                              }
-                            )
-                              .then((res) => {
-                                if (!res.ok) {
-                                  throw new Error(
-                                    "Failed to remove participant"
-                                  );
+                        session.Host.UserId === user?.UserId && (
+                          <Trash
+                            onClick={() => {
+                              fetch(
+                                "/api/v1/user/remove?user=" +
+                                  participant.UserId,
+                                {
+                                  method: "DELETE",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                  },
                                 }
-                                return res.json();
-                              })
-                              .catch((error) => {
-                                toast(error.message, {
-                                  type: "error",
-                                  position: "top-right",
-                                  autoClose: 5000,
+                              )
+                                .then((res) => {
+                                  if (!res.ok) {
+                                    throw new Error(
+                                      "Failed to remove participant"
+                                    );
+                                  }
+                                  return res.json();
+                                })
+                                .catch((error) => {
+                                  toast(error.message, {
+                                    type: "error",
+                                    position: "top-right",
+                                    autoClose: 5000,
+                                  });
                                 });
-                              });
-                          }}
-                          className="text-red-400 h-5 w-5"
-                        />
+                            }}
+                            className="text-red-400 h-5 w-5"
+                          />
+                        )
                       )}
                     </div>
                   ))}

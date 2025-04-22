@@ -11,9 +11,10 @@ export const userDB = models.user || model(
         IsHost: { type: Boolean, required: true },
         CreatedAt: { type: Date, default: Date.now },
         UserVotedForThisUser: { type: [String], required: true },
+        IsDone: { type: Boolean, default: false },
         Feedback: [
             {
-                Title: { type: String, required: true },
+                Type: { type: String, required: true },
                 Description: { type: String, required: true },
                 CreatedAt: { type: Date, default: Date.now },
                 Id: { type: String, required: true },

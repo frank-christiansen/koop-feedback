@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from "react";
+import { ToastContainer } from "react-toastify";
 
 export default function AuthLayout({
   children,
@@ -26,5 +27,10 @@ export default function AuthLayout({
     checkSession();
   }, []);
 
-  return <>{children}</>;
+  return (
+    <>
+      <ToastContainer></ToastContainer>
+      {children}
+    </>
+  );
 }

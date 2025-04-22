@@ -15,18 +15,32 @@ export async function connectToDatabase() {
     } catch (error) {
         console.error("Error connecting to MongoDB database:", error);
     }
-    // Delete UserData 
+
+}
+
+async function deleteDataforDays() {
     const sessions = await sessionDB.find().sort()
-    sessions.forEach(async (session) => {
-        if (session.CreatedAt.getTime() < Date.now() - 1000 * 60 * 60 * 24 * 7) {
+
+    for (const session of sessions) {
+        // Session älter als 24h
+        if (session.CreatedAt.getTime() < Date.now() - 1000 * 60 * 60 * 24) {
             await sessionDB.deleteOne({ SessionId: session.SessionId })
         }
+
         const users = await userDB.find({ SessionId: session.SessionId })
-        users.forEach(async (user) => {
-            if (user.CreatedAt.getTime() < Date.now() - 1000 * 60 * 60 * 24 * 7) {
+        for (const user of users) {
+            // User älter als 7 Tage
+            if (user.CreatedAt.getTime() < Date.now() - 1000 * 60 * 60 * 24) {
                 await userDB.deleteOne({ SessionId: session.SessionId })
             }
-        })
-    })
+        }
+    }
 }
+
+export async function dbData() {
+    setInterval(() => {
+        deleteDataforDays().catch(console.error)
+    }, 1000 * 60 * 5)
+}
+
 

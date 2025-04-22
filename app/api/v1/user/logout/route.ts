@@ -20,6 +20,13 @@ export async function POST(req: NextRequest) {
 
 
     const cookie = await cookies()
+
+    await userDB.deleteMany({
+        SessionId: cookie.get("sessionId")?.value,
+        AuthId: cookie.get("authId")?.value,
+        UserId: cookie.get("userId")?.value,
+    })
+
     cookie.delete("sessionId")
     cookie.delete("userId")
     cookie.delete("authId")

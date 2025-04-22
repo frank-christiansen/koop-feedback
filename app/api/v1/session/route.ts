@@ -114,6 +114,11 @@ export async function GET(req: NextRequest) {
     }
     const users = await getUsers()
 
+    let doneUsers: string[] = []
+    if (userId == session.Host) {
+        doneUsers = session.DoneUsers
+    }
+
     const sessionData = {
         SessionId: session.SessionId,
         Code: session.Code,
@@ -121,11 +126,13 @@ export async function GET(req: NextRequest) {
         Users: users,
         IsStarted: session.IsStarted,
         IsFinished: session.IsFinished,
+        DoneUsers: doneUsers,
     }
     const userData = {
         UserId: user.UserId,
         SessionId: user.SessionId,
         Name: user.Name,
+        IsDone: user.IsDone,
         IsHost: user.IsHost,
         UserVotedForThisUser: user.UserVotedForThisUser,
         Feedback: user.Feedback

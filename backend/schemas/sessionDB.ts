@@ -11,5 +11,6 @@ export const sessionDB = models.session || model(
         CreatedAt: { type: Date, default: Date.now },
         IsStarted: { type: Boolean, default: false },
         IsFinished: { type: Boolean, default: false },
+        DoneUsers: { type: [String], default: [] },
     })
 )  

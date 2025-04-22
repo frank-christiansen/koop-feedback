@@ -18,9 +18,9 @@ export async function GET(req: NextRequest) {
         )
     }
 
-    const userId = req.url.split("=")[1];
-
     const cookie = await cookies()
+
+    const userId = req.url.split("=")[1] ? req.url.split("=")[1] : cookie.get("userId")?.value
 
     if (!cookie.get("sessionId") || !cookie.get("userId")) {
         return NextResponse.json(

@@ -27,9 +27,9 @@ export async function GET(req: NextRequest) {
         SessionId: sessionId,
     });
 
-    const userFeeback = user.Feedback.map((feedback: { Title: any; Description: any; CreatedAt: any; Id: any; }) => {
+    const userFeeback = user.Feedback.map((feedback: { Type: any; Description: any; CreatedAt: any; Id: any; }) => {
         return {
-            Title: feedback.Title,
+            Type: feedback.Type,
             Description: feedback.Description,
             CreatedAt: feedback.CreatedAt,
             Id: feedback.Id,
@@ -90,11 +90,11 @@ export async function POST(req: NextRequest) {
         { status: 400 }
     )
 
-    const { tite, description, feedbackUser, userSessionId } = await req.json();
+    const { type, description, feedbackUser, userSessionId } = await req.json();
     const feedbackId = uuid();
 
     const feedback = {
-        Title: tite,
+        Type: type,
         Description: description,
         Id: feedbackId,
     }
@@ -124,6 +124,21 @@ export async function POST(req: NextRequest) {
             { status: 400 }
         )
     }
+
+    await sessionDB.findOneAndUpdate({
+        SessionId: sessionId,
+    }, {
+        $push: {
+            DoneUsers: userId,
+        }
+    });
+
+    await userDB.findOneAndUpdate({
+        UserId: userId,
+        SessionId: sessionId,
+    }, {
+        IsDone: true,
+    })
 
     await userDB.findOneAndUpdate({
         UserId: feedbackUser,
