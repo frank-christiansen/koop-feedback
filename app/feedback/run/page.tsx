@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Check, Crown, Trash, X } from "lucide-react";
+import { Check, Crown, Meh, Send, Smile, Trash, X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -109,6 +109,11 @@ export default function SessionPage() {
 
   const handleAddFeedback = async () => {
     if (!selectedUser || !feedbackType.trim()) return;
+
+    if (feedbackDescription.length <= 0) {
+      toast.error("Please enter a description");
+      return;
+    }
 
     const newFeedback = {
       Type: feedbackType,
@@ -230,7 +235,13 @@ export default function SessionPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {session.Users.map((participant) => (
+                  {session.Users.sort((a, b) => {
+                    const nameA = a.Name.toLowerCase();
+                    const nameB = b.Name.toLowerCase();
+                    if (nameA < nameB) return -1;
+                    if (nameA > nameB) return 1;
+                    return 0;
+                  }).map((participant) => (
                     <div
                       key={participant.UserId}
                       className="bg-white/5 rounded-lg overflow-hidden"
@@ -288,32 +299,43 @@ export default function SessionPage() {
                     </p>
                   ) : (
                     <div className="space-y-2">
-                      {feedbacks.map((feedback) => (
-                        <div
-                          key={feedback.Id}
-                          className="p-3 bg-white/5 rounded-lg flex justify-between items-center"
-                        >
-                          <div>
-                            <h4 className="text-white font-medium">
-                              {feedback.Type}
-                            </h4>
-                            <p className="text-white/70 text-sm">
-                              {feedback.Description}
-                            </p>
-                            <p className="text-xs text-white/50 mt-1">
-                              For: {feedback.forUser.Name}
-                            </p>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-400 hover:bg-red-400/10"
-                            onClick={() => handleRemoveFeedback(feedback.Id)}
+                      {feedbacks
+                        .sort((a, b) => {
+                          const nameCompare = a.forUser.Name.localeCompare(
+                            b.forUser.Name
+                          );
+                          if (nameCompare !== 0) return nameCompare;
+
+                          return a.Type === "positive" ? -1 : 1;
+                        })
+                        .map((feedback) => (
+                          <div
+                            key={feedback.Id}
+                            className={`p-3 rounded-lg flex justify-between items-center ${
+                              feedback.Type == "positive"
+                                ? "bg-green-500 text-black"
+                                : "bg-yellow-500"
+                            }`}
                           >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
+                            <div>
+                              <p className="text-xl font-medium text-black flex items-center">
+                                <Send className="inline h-4 w-4 mr-1 "></Send>{" "}
+                                {feedback.forUser.Name}
+                              </p>
+                              <p className="text-sm mt-1 text-gray-700 font-semibold">
+                                {feedback.Description}
+                              </p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-400 hover:bg-red-400/10"
+                              onClick={() => handleRemoveFeedback(feedback.Id)}
+                            >
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
                     </div>
                   )}
                   <Button
@@ -361,7 +383,8 @@ export default function SessionPage() {
         <DialogContent className="rounded-2xl shadow-xl border border-white/10 bg-[#1d112d]/80 backdrop-blur-md p-6">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-white">
-              Feedback für {selectedUser?.Name}
+              Feedback <form action="" method="post"></form>{" "}
+              {selectedUser?.Name}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
@@ -370,28 +393,28 @@ export default function SessionPage() {
               defaultValue={feedbackType}
             >
               <SelectTrigger className="bg-white/5 border border-white/10 text-white hover:bg-[#aa77ff]/10 transition-all">
-                <SelectValue placeholder="Feedback-Typ wählen" />
+                <SelectValue placeholder="Feedback-Typ" />
               </SelectTrigger>
               <SelectContent className="bg-[#1d112d]/80 backdrop-blur-sm border border-white/20 text-white rounded-xl">
                 <SelectItem
                   value="positive"
                   className="flex items-center gap-2 px-3 py-2 hover:bg-[#aa77ff]/10 focus:bg-[#aa77ff]/10"
                 >
-                  <Check className="h-4 w-4 text-[#aa77ff]" />
+                  <Smile className="h-4 w-4 text-green-500" />
                   <span className="text-white">Positiv</span>
                 </SelectItem>
                 <SelectItem
-                  value="negative"
+                  value="neutral"
                   className="flex items-center gap-2 px-3 py-2 hover:bg-[#aa77ff]/10 focus:bg-[#aa77ff]/10"
                 >
-                  <X className="h-4 w-4 text-[#aa77ff]" />
-                  <span className="text-white">Negativ</span>
+                  <Meh className="h-4 w-4 text-yellow-500" />
+                  <span className="text-white">Neutral</span>
                 </SelectItem>
               </SelectContent>
             </Select>
 
             <Textarea
-              placeholder="Beschreibung eingeben..."
+              placeholder=""
               value={feedbackDescription}
               onChange={(e) => setFeedbackDescription(e.target.value)}
               className="bg-white/5 border border-white/10 text-white placeholder-white/40 rounded-md p-3 min-h-[100px]"

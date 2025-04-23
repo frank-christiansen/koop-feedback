@@ -29,7 +29,15 @@ export default function AuthLayout({
 
   return (
     <>
-      <ToastContainer></ToastContainer>
+      <ToastContainer
+        position="top-right"
+        autoClose={500}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        theme="light"
+      ></ToastContainer>
       {children}
     </>
   );

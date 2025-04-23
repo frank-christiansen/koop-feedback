@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileWarning, MessageCircleWarning } from "lucide-react";
+import { Check, FileWarning, MessageCircleWarning } from "lucide-react";
 import { toast } from "react-toastify";
 
 interface Feedback {
@@ -55,27 +55,6 @@ export default function SessionPage() {
     );
   }
 
-  async function deleteData() {
-    const req = await fetch("/api/v1/session/delete", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (req.status === 200) {
-      toast.success("Session data deleted successfully!", {
-        type: "info",
-        position: "top-right",
-      });
-    } else {
-      toast.error("Failed to delete session data.", {
-        type: "error",
-        position: "top-right",
-      });
-    }
-  }
-
   const logoutSession = async () => {
     const req = await fetch("/api/v1/user/logout", {
       method: "POST",
@@ -88,16 +67,19 @@ export default function SessionPage() {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br text-center from-purple-900 to-indigo-800 text-white">
-      <h1 className="text-3xl font-bold mb-6">Feedback Übersicht</h1>
-
+    <div className="min-h-screen p-6 bg-gradient-to-br from-purple-900 to-indigo-800 text-white">
+      <div className="flex items-center justify-center mb-6">
+        <h1 className="text-3xl font-bold text-white">Feedback</h1>
+      </div>
       {feedbacks.length === 0 ? (
-        <p className="text-white/60">Noch kein Feedback vorhanden.</p>
+        <p className="text-center text-white/60 text-xl">
+          No feedback available. Please check back later.
+        </p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {feedbacks.map((fb) => {
             const isPositive = fb.Type === "positive";
-            const cardColor = isPositive ? "bg-green-500" : "bg-red-500";
+            const cardColor = isPositive ? "bg-green-500" : "bg-yellow-500";
             const typeLabel =
               fb.Type.charAt(0).toUpperCase() + fb.Type.slice(1);
             const createdAt = new Date(fb.CreatedAt).toLocaleString();
@@ -105,50 +87,25 @@ export default function SessionPage() {
             return (
               <Card
                 key={fb.Id}
-                className={`rounded-2xl p-3 shadow-xl border border-white/20 backdrop-blur-md text-white transition-all hover:scale-[1.01] ${cardColor}`}
+                className={`rounded-2xl p-4 shadow-lg border border-white/20 backdrop-blur-md text-white transition-transform transform hover:scale-105 ${cardColor}`}
               >
-                <CardHeader>
-                  <CardTitle className="text-xl font-semibold flex items-center gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 rounded-full bg-white/80 animate-pulse shadow-sm flex items-center justify-center" />
-                      <span>{typeLabel}</span>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-sm font-medium text-white/90 flex items-center gap-2">
-                      Feedback
-                    </span>
-                    <p className="text-base font-light leading-relaxed text-white/95 flex items-center gap-2">
-                      {fb.Description}
-                    </p>
-                  </div>
-                  <div className="pt-2 border-t border-white/30 text-xs text-white/70">
-                    <span>Submitted on: {createdAt}</span>
-                  </div>
+                <CardContent>
+                  <p className="text-lg leading-relaxed text-white/95 font-medium text-center">
+                    {fb.Description}
+                  </p>
                 </CardContent>
               </Card>
             );
           })}
         </div>
       )}
-
       <div className="mt-6 flex flex-col sm:flex-row sm:space-x-4 items-center justify-center">
         <Button
-          className="mt-6 sm:mt-0 bg-red-800 hover:bg-red-700 text-white w-full sm:w-auto hover:shadow-lg transition duration-300 ease-in-out"
+          className="mt-6 sm:mt-0 bg-purple-800 hover:bg-purple-700 text-white w-full sm:w-auto hover:shadow-lg transition duration-300 ease-in-out border-1 border-white/20 hover:border-white/30 hover:cursor-pointer"
           onClick={() => logoutSession()}
         >
-          <MessageCircleWarning /> Logout & Delete Session
+          Logout
         </Button>
-        {user.IsHost && (
-          <Button
-            className="mt-6 sm:mt-0 bg-red-800 hover:bg-red-700 text-white w-full sm:w-auto hover:shadow-lg transition duration-300 ease-in-out"
-            onClick={() => deleteData()}
-          >
-            <MessageCircleWarning /> Delete the Session Data
-          </Button>
-        )}
       </div>
     </div>
   );

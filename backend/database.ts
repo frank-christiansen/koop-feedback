@@ -19,6 +19,7 @@ export async function connectToDatabase() {
 }
 
 async function deleteDataforDays() {
+    await connectToDatabase()
     const sessions = await sessionDB.find().sort()
 
     for (const session of sessions) {

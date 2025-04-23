@@ -75,6 +75,21 @@ export default function Home() {
             <p className="text-white/60 text-sm">
               © 2025 Jesforge.dev. All rights reserved.
             </p>
+            <div className="flex items-center space-x-4">
+              <Link
+                href="https://jesforge.dev"
+                className="text-white/60 hover:text-white transition-colors"
+              >
+                Terms of Service & Privacy Policy
+              </Link>
+              <span className="text-white/60">|</span>
+              <Link
+                href="https://jesforge.dev/impressum"
+                className="text-white/60 hover:text-white transition-colors"
+              >
+                Impressum
+              </Link>
+            </div>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link
                 href="https://github.com/frank-christiansen/koop-feedback"

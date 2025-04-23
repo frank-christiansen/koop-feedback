@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     const sessionData = {
         Users: [userUUID],
         SessionId: sessionUUID,
-        Code: Math.floor(1000 + Math.random() * 9000),
+        Code: Math.floor(100000 + Math.random() * 900000),
         Host: userUUID,
         IsStrarted: false,
         IsFinished: false,
