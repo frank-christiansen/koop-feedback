@@ -22,6 +22,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { getLanguageFile, getLanguageKey } from "@/backend/lang";
 
 export interface Session {
   Users: User[];
@@ -52,10 +53,15 @@ export default function SessionPage() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [feedback, setFeedback] = useState("");
+  const [transition, setTransition] = useState<FeedbackTranslations>();
   const router = useRouter();
 
   useEffect(() => {
     const fetchSession = async () => {
+      const defaultLang = await getLanguageKey();
+      const langFile = await getLanguageFile(defaultLang);
+      setTransition(langFile);
+
       try {
         const req = await fetch("/api/v1/session", {
           method: "GET",
@@ -101,7 +107,7 @@ export default function SessionPage() {
         setUser(data.user);
         setSession(mockSession);
       } catch (error) {
-        toast.error("Failed to load session");
+        toast.error(transition?.toats.failedToLoadSession);
         console.error(error);
       } finally {
         setIsLoading(false);
@@ -121,7 +127,7 @@ export default function SessionPage() {
   const copySessionCode = () => {
     if (!session) return;
     navigator.clipboard.writeText(session.Code.toString());
-    toast.success("Session code copied to clipboard");
+    toast.success(transition?.toats.copiedSessionCode);
   };
 
   const startSession = async () => {
@@ -142,7 +148,7 @@ export default function SessionPage() {
       return;
     }
 
-    toast("Session started", {
+    toast(transition?.toats.sessionStarted, {
       type: "info",
       position: "top-right",
       autoClose: 5000,
@@ -198,9 +204,11 @@ export default function SessionPage() {
           <div className="lg:col-span-1">
             <Card className="bg-white/10 backdrop-blur-sm border-white/20">
               <CardHeader>
-                <CardTitle className="text-white">Join Session</CardTitle>
+                <CardTitle className="text-white">
+                  {transition?.sessions.qrcode.title}
+                </CardTitle>
                 <CardDescription className="text-white/60">
-                  Scan the QR code or enter the code to join the session.
+                  {transition?.sessions.qrcode.subtitle}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex justify-center items-center h-48">
@@ -221,7 +229,7 @@ export default function SessionPage() {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle className="text-white">
-                    Participants ({session.Users.length})
+                    {transition?.sessions.member} ({session.Users.length})
                   </CardTitle>
                   {session.Host.UserId === user?.UserId &&
                     !session.IsStarted && (
@@ -230,7 +238,7 @@ export default function SessionPage() {
                         className="bg-blue-500 text-white hover:bg-blue-600"
                         onClick={startSession}
                       >
-                        Start Session
+                        {transition?.sessions.startSession.button}
                       </Button>
                     )}
                 </div>

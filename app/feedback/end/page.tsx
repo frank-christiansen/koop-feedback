@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check, FileWarning, MessageCircleWarning } from "lucide-react";
 import { toast } from "react-toastify";
+import { getLanguageFile, getLanguageKey } from "@/backend/lang";
 
 interface Feedback {
   Type: string;
@@ -18,9 +19,14 @@ export default function SessionPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [user, setUser] = useState<any>(null);
+  const [transition, setTransition] = useState<FeedbackTranslations>();
 
   useEffect(() => {
     const fetchSession = async () => {
+      const defaultLang = await getLanguageKey();
+      const langFile = await getLanguageFile(defaultLang);
+      setTransition(langFile);
+
       const req = await fetch("/api/v1/user/feedback", {
         method: "GET",
         headers: {
@@ -38,8 +44,6 @@ export default function SessionPage() {
 
       setUser(user.user);
       const res = await req.json();
-
-      console.log(res.feedback);
 
       setFeedbacks(res.feedback);
       setIsLoading(false);
@@ -69,34 +73,34 @@ export default function SessionPage() {
   return (
     <div className="min-h-screen p-6 bg-gradient-to-br from-purple-900 to-indigo-800 text-white">
       <div className="flex items-center justify-center mb-6">
-        <h1 className="text-3xl font-bold text-white">Feedback</h1>
+        <h1 className="text-3xl font-bold text-white">
+          {transition?.endSession.title}
+        </h1>
       </div>
       {feedbacks.length === 0 ? (
         <p className="text-center text-white/60 text-xl">
-          No feedback available. Please check back later.
+          {transition?.endSession.noFeedback}
         </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {feedbacks.map((fb) => {
-            const isPositive = fb.Type === "positive";
-            const cardColor = isPositive ? "bg-green-500" : "bg-yellow-500";
-            const typeLabel =
-              fb.Type.charAt(0).toUpperCase() + fb.Type.slice(1);
-            const createdAt = new Date(fb.CreatedAt).toLocaleString();
-
-            return (
-              <Card
-                key={fb.Id}
-                className={`rounded-2xl p-4 shadow-lg border border-white/20 backdrop-blur-md text-white transition-transform transform hover:scale-105 ${cardColor}`}
-              >
-                <CardContent>
-                  <p className="text-lg leading-relaxed text-white/95 font-medium text-center">
-                    {fb.Description}
-                  </p>
-                </CardContent>
-              </Card>
-            );
-          })}
+          {feedbacks
+            .sort((a, b) => (a.Type === "positive" ? -1 : 1))
+            .map((fb) => {
+              const isPositive = fb.Type === "positive";
+              const cardColor = isPositive ? "bg-green-500" : "bg-yellow-500";
+              return (
+                <Card
+                  key={fb.Id}
+                  className={`rounded-2xl p-4 shadow-lg border border-white/20 backdrop-blur-md text-white transition-transform transform hover:scale-105 ${cardColor}`}
+                >
+                  <CardContent>
+                    <p className="text-lg leading-relaxed text-white/95 font-medium text-center">
+                      {fb.Description}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
         </div>
       )}
       <div className="mt-6 flex flex-col sm:flex-row sm:space-x-4 items-center justify-center">

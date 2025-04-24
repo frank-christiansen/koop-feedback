@@ -1,5 +1,6 @@
 "use client";
 
+import { getLanguageFile, getLanguageKey } from "@/backend/lang";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,13 +13,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 export function CreateSession() {
   const [name, setName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const router = useRouter();
+  const [transition, setTransition] = useState<FeedbackTranslations>();
+
+  useEffect(() => {
+    async function data() {
+      const defaultLang = await getLanguageKey();
+      const langFile = await getLanguageFile(defaultLang);
+      setTransition(langFile);
+    }
+    data();
+  }, []);
 
   const handleCreateSession = async () => {
     if (!name.trim()) return;
@@ -68,20 +79,20 @@ export function CreateSession() {
     <Card className="bg-white/10 backdrop-blur-sm border-white/20 w-full max-w-md">
       <CardHeader>
         <CardTitle className="text-white text-2xl">
-          Create New Session
+          {transition?.createSession.title}
         </CardTitle>
         <CardDescription className="text-white/80">
-          Enter your name to start a new quiz session
+          {transition?.createSession.subtitle}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="name" className="text-white">
-            Your Name
+            {transition?.createSession.name.label}
           </Label>
           <Input
             id="name"
-            placeholder="Enter your name"
+            placeholder={transition?.createSession.name.placeholder}
             className="bg-white/10 border-white/20 text-white placeholder-white/50"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -116,12 +127,12 @@ export function CreateSession() {
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
               </svg>
-              Creating...
+              {transition?.createSession.button.creating}
             </div>
           ) : (
             <>
               <Plus className="mr-2 h-4 w-4" />
-              Create Session
+              {transition?.createSession.button.createSessionBtn}
             </>
           )}
         </Button>

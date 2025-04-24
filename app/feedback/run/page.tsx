@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getLanguageFile, getLanguageKey } from "@/backend/lang";
 
 export interface Session {
   Users: User[];
@@ -69,10 +70,15 @@ export default function SessionPage() {
   const [expandedUsers, setExpandedUsers] = useState<Record<string, boolean>>(
     {}
   );
+  const [transition, setTransition] = useState<FeedbackTranslations>();
   const router = useRouter();
 
   useEffect(() => {
     const fetchSession = async () => {
+      const defaultLang = await getLanguageKey();
+      const langFile = await getLanguageFile(defaultLang);
+      setTransition(langFile);
+
       try {
         const req = await fetch("/api/v1/session");
         const data = await req.json();
@@ -192,10 +198,12 @@ export default function SessionPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 to-indigo-800">
       <header className="py-4 px-6 border-b border-white/20 flex justify-between items-center">
         <div className="flex items-center space-x-2 mt-1">
-          <span className="text-white/80 text-sm">Session Code: Started</span>
+          <span className="text-white/80 text-sm">
+            {transition?.runSession.header.sessionCode}: Started
+          </span>
           <span className="text-white/80 text-sm">-</span>
           <span className="text-white/80 text-sm">
-            Logged in as: {user?.Name}
+            {transition?.runSession.header.loggedIn}: {user?.Name}
           </span>
         </div>
       </header>
@@ -205,12 +213,12 @@ export default function SessionPage() {
           <Card className="bg-white/10 backdrop-blur-sm border border-white/20 shadow-2xl w-[90%] max-w-md">
             <CardHeader>
               <CardTitle className="text-white text-center">
-                Feedback already submitted
+                {transition?.runSession.alreadySubmitted}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-white text-center">
-                Please wait for the host to finish the session.
+                {transition?.runSession.alreadySubmittedTooltip}
               </p>
             </CardContent>
           </Card>
@@ -224,11 +232,11 @@ export default function SessionPage() {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle className="text-white">
-                    Participants ({session.Users.length})
+                    {transition?.runSession.member} ({session.Users.length})
                   </CardTitle>
                   {feedbacks.length > 0 && (
                     <span className="text-sm text-white/80">
-                      {feedbacks.length} feedback items ready
+                      {feedbacks.length} {transition?.runSession.feedbackReady}
                     </span>
                   )}
                 </div>
@@ -291,11 +299,11 @@ export default function SessionPage() {
                 {/* Eigene Feedback-Liste */}
                 <div className="mt-6">
                   <h3 className="text-white font-medium mb-3">
-                    Your Feedbacks
+                    {transition?.runSession.feedback.feedback}
                   </h3>
                   {feedbacks.length === 0 ? (
                     <p className="text-white/60 text-sm">
-                      No feedback added yet
+                      {transition?.runSession.feedback.placeholder}
                     </p>
                   ) : (
                     <div className="space-y-2">
@@ -346,7 +354,8 @@ export default function SessionPage() {
                       session.DoneUsers.includes(user?.UserId as string)
                     }
                   >
-                    Submit your feedback ({feedbacks.length})
+                    {transition?.runSession.button.sendFeedbackBtn} (
+                    {feedbacks.length})
                   </Button>
                   {session.Host && session.Host.UserId == user?.UserId && (
                     <Button
@@ -362,13 +371,13 @@ export default function SessionPage() {
                           }),
                         });
                         if (req.status === 200) {
-                          toast.success("Session ended successfully!");
+                          toast.success(transition?.toats.sessionEnded);
                         } else {
-                          toast.error("Failed to end session");
+                          toast.error(transition?.toats.sessionEndedError);
                         }
                       }}
                     >
-                      End Session
+                      {transition?.runSession.button.endSessionBtn}
                     </Button>
                   )}
                 </div>
@@ -383,8 +392,8 @@ export default function SessionPage() {
         <DialogContent className="rounded-2xl shadow-xl border border-white/10 bg-[#1d112d]/80 backdrop-blur-md p-6">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-white">
-              Feedback <form action="" method="post"></form>{" "}
-              {selectedUser?.Name}
+              Feedback {selectedUser?.Name}
+              <form action="" method="post"></form>{" "}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
@@ -426,14 +435,14 @@ export default function SessionPage() {
                 className="border border-white/10 text-white hover:bg-white/10 transition-all"
                 onClick={() => setSelectedUser(null)}
               >
-                Abbrechen
+                {transition?.runSession.button.cancelBtn}
               </Button>
               <Button
                 onClick={handleAddFeedback}
                 disabled={!feedbackType.trim()}
                 className="bg-[#aa77ff] hover:bg-[#9d66cc] text-white transition-all"
               >
-                Feedback abgeben
+                {transition?.runSession.button.sendFeedbackBtn}
               </Button>
             </div>
           </div>

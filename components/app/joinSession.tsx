@@ -5,22 +5,31 @@ import { Button } from "@/components/ui/button";
 import { LogIn, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { getLanguageFile, getLanguageKey } from "@/backend/lang";
 
 export default function JoinSession() {
   const [code, setCode] = useState<string>("");
   const [showUserNameInput, setShowUserNameInput] = useState(false);
   const [userName, setUserName] = useState<string>("");
+  const [transition, setTransition] = useState<FeedbackTranslations>();
 
   useEffect(() => {
     const code = window.location.href.split("?join=")[1];
     setShowUserNameInput(!!code);
     setCode(code);
+
+    async function data() {
+      const defaultLang = await getLanguageKey();
+      const langFile = await getLanguageFile(defaultLang);
+      setTransition(langFile);
+    }
+    data();
   }, []);
 
   return (
     <div className="space-y-2">
       <Label htmlFor="code" className="text-white">
-        Session Code
+        {transition?.sessions.qrcode.title}
       </Label>
       <div className="flex space-x-2">
         <Input
@@ -45,7 +54,7 @@ export default function JoinSession() {
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="relative p-6 rounded-2xl shadow-xl max-w-md w-full bg-purple-800 border border-white/20">
               <h2 className="text-white text-xl font-semibold mb-4">
-                Join Session
+                {transition?.sessions.qrcode.title}
                 <X
                   className="absolute top-4 right-4 h-5 w-5 text-white/70 hover:text-white cursor-pointer"
                   onClick={() => setShowUserNameInput(false)}
@@ -56,7 +65,7 @@ export default function JoinSession() {
                   id="name"
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
-                  placeholder="Enter your name"
+                  placeholder={transition?.toats.noName}
                   className="bg-white/10 text-white placeholder-white/60 border-white/30 focus:ring-white/40"
                 />
                 <Button

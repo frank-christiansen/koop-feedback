@@ -1,7 +1,13 @@
 "use client";
 import { dbData } from "@/backend/database";
+import {
+  getLanguageFile,
+  getLanguageKey,
+  setLanguageKey,
+} from "@/backend/lang";
 import { CreateSession } from "@/components/app/createSession";
 import JoinSession from "@/components/app/joinSession";
+import LanguagePopup from "@/components/app/LanguagePopup";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,22 +16,40 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Github, LogIn, Plus } from "lucide-react";
-import Image from "next/image";
+import { Github, Languages, Plus } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function Home() {
   const [showCreateSession, setShowCreateSession] = useState(false);
+  const [language, setLanguage] = useState("en");
+  const [showLanguage, setShowLanguage] = useState(false);
+  const [transition, setTransition] = useState<FeedbackTranslations>();
 
   useEffect(() => {
     async function data() {
+      const lang = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("lang="));
+      if (lang) {
+        const langValue = lang.split("=")[1];
+        setLanguage(langValue);
+      }
+
+      const defaultLang = await getLanguageKey();
+      const langFile = await getLanguageFile(defaultLang);
+      setTransition(langFile);
+
       await dbData();
     }
     data();
   });
+
+  const handleLanguageChange = async (value: string) => {
+    setLanguage(value);
+    document.cookie = `lang=${value}; path=/;`;
+    await setLanguageKey(value);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 to-indigo-800 flex flex-col">
@@ -38,10 +62,10 @@ export default function Home() {
             <Card className="bg-white/10 backdrop-blur-sm border-white/20">
               <CardHeader>
                 <CardTitle className="text-white text-2xl">
-                  Welcome to Koop Feedback
+                  {transition?.mainpage.title}
                 </CardTitle>
                 <CardDescription className="text-white/80">
-                  Create or join a feedback session.
+                  {transition?.mainpage.subtitle}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -50,14 +74,14 @@ export default function Home() {
                   onClick={() => setShowCreateSession(true)}
                 >
                   <Plus className="mr-2 h-4 w-4" />
-                  Create New Session
+                  {transition?.mainpage.button.createSessionBtn}
                 </Button>
 
                 {/* Rest des existierenden Codes für Join Session */}
                 <div className="relative">
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-transparent px-2 text-white/60">
-                      Or join with code
+                      {transition?.mainpage.infomsg}
                     </span>
                   </div>
                 </div>
@@ -80,24 +104,36 @@ export default function Home() {
                 href="https://jesforge.dev"
                 className="text-white/60 hover:text-white transition-colors"
               >
-                Terms of Service & Privacy Policy
+                {transition?.mainpage.footer.privacy}
               </Link>
               <span className="text-white/60">|</span>
               <Link
                 href="https://jesforge.dev/impressum"
                 className="text-white/60 hover:text-white transition-colors"
               >
-                Impressum
+                {transition?.mainpage.footer.imprint}
               </Link>
             </div>
-            <div className="flex space-x-6 mt-4 md:mt-0">
+            <div className="space-x-6 mt-4 md:mt-0 inline-flex">
               <Link
                 href="https://github.com/frank-christiansen/koop-feedback"
                 className="text-white/60 hover:text-white transition-colors"
               >
-                <span className="sr-only">GitHub</span>
+                <span className="sr-only inline-flex">GitHub</span>
                 <Github></Github>
               </Link>
+              <Languages
+                onClick={() => setShowLanguage(!showLanguage)}
+                className="inline-flex text-white/60 hover:text-white cursor-pointer"
+              />
+
+              {showLanguage && (
+                <LanguagePopup
+                  language={language}
+                  setLanguage={setLanguage}
+                  setShowLanguage={setShowLanguage}
+                />
+              )}
             </div>
           </div>
         </div>

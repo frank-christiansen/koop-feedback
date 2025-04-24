@@ -1,0 +1,87 @@
+{
+    "mainpage": {
+        "title": "Willkommen bei Koop Feedback",
+        "subtitle": "Erstelle oder tritt einer Feedback-Session bei.",
+        "button": {
+            "createSessionBtn": "Neue Session erstellen"
+        },
+        "infomsg": "Oder mit Code beitreten",
+        "code": {
+            "label": "Session-Code",
+            "placeholder": "Session-Code eingeben",
+            "button": "Beitreten"
+        },
+        "footer": {
+            "imprint": "Impressum",
+            "privacy": "Nutzungsbedingungen & Datenschutz"
+        }
+    },
+    "createSession": {
+        "title": "Neue Session erstellen",
+        "subtitle": "Gib deinen Namen ein, um eine neue Quiz-Session zu starten",
+        "name": {
+            "label": "Dein Name",
+            "placeholder": "Name eingeben"
+        },
+        "button": {
+            "createSessionBtn": "Session erstellen",
+            "creating": "Wird erstellt..."
+        }
+    },
+    "sessions": {
+        "qrcode": {
+            "title": "Session beitreten",
+            "subtitle": "QR-Code scannen, um der Session beizutreten"
+        },
+        "member": "Teilnehmer",
+        "startSession": {
+            "button": "Session starten"
+        }
+    },
+    "runSession": {
+        "header": {
+            "sessionCode": "Session-Code",
+            "loggedIn": "Angemeldet als"
+        },
+        "member": "Teilnehmer",
+        "alreadySubmitted": "Feedback bereits eingereicht",
+        "alreadySubmittedTooltip": "Bitte warte bis der Host die Session beendet.",
+        "feedbackReady": "Feedback-Elemente bereit",
+        "feedback": {
+            "feedback": "Dein Feedback",
+            "placeholder": "Noch kein Feedback hinzugefügt"
+        },
+        "button": {
+            "sendFeedbackBtn": "Feedback abschicken",
+            "endSessionBtn": "Session beenden",
+            "cancelBtn": "Abbrechen"
+        }
+    },
+    "endSession": {
+        "title": "Feedback",
+        "noFeedback": "Kein Feedback verfügbar. Bitte später erneut prüfen.",
+        "button": {
+            "logoutBtn": "Abmelden"
+        }
+    },
+    "toats": {
+        "sessionCreated": "Session erfolgreich erstellt",
+        "sessionJoined": "Session erfolgreich beigetreten",
+        "sessionStarted": "Session erfolgreich gestartet",
+        "feedbackSent": "Feedback erfolgreich gesendet",
+        "sessionEnded": "Session erfolgreich beendet",
+        "sessionNotFound": "Session nicht gefunden",
+        "sessionCodeInvalid": "Ungültiger Session-Code",
+        "feedbackNotFound": "Feedback nicht gefunden",
+        "feedbackSentError": "Fehler beim Senden des Feedbacks",
+        "sessionEndedError": "Fehler beim Beenden der Session",
+        "feedbackAdded": "Feedback erfolgreich hinzugefügt",
+        "feedbackRemoved": "Feedback erfolgreich entfernt",
+        "failedToLoadSession": "Fehler beim Laden der Session",
+        "failedToLoadFeedback": "Fehler beim Laden des Feedbacks",
+        "errorByJoiningSession": "Fehler beim Beitreten zur Session",
+        "noName": "Bitte gib deinen Namen ein",
+        "noDescription": "Bitte gib eine Beschreibung ein",
+        "copiedSessionCode": "Session-Code in die Zwischenablage kopiert"
+    }
+}
