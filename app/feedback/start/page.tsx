@@ -205,7 +205,18 @@ export default function SessionPage() {
             <Card className="bg-white/10 backdrop-blur-sm border-white/20">
               <CardHeader>
                 <CardTitle className="text-white">
-                  {transition?.sessions.qrcode.title}
+                  {transition?.sessions.qrcode.title} -{" "}
+                  <Copy
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        `http://${window.location.host}?join=${session.Code}`
+                      );
+                      toast.success(transition?.toats.copiedSessionCode);
+                    }}
+                    className="inline-flex"
+                    height={15}
+                    width={15}
+                  ></Copy>
                 </CardTitle>
                 <CardDescription className="text-white/60">
                   {transition?.sessions.qrcode.subtitle}
