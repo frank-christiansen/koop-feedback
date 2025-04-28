@@ -30,8 +30,9 @@ export default function Home() {
     async function data() {
       if (language) return;
 
-      // Hole die Sprache aus dem Browser
-      const browserLang = navigator.language.split("-")[0]; // z. B. "en-US" -> "en"
+      const browserLang = navigator.language.split("-")[0];
+
+      document.cookie = `lang=${browserLang}; path=/;`;
       setLanguage(browserLang);
 
       const lang = document.cookie
