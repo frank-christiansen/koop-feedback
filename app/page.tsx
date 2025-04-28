@@ -29,6 +29,7 @@ export default function Home() {
   useEffect(() => {
     async function data() {
       if (language) return;
+      setLanguage("en");
       const lang = document.cookie
         .split("; ")
         .find((row) => row.startsWith("lang="));
