@@ -22,12 +22,13 @@ import { useEffect, useState } from "react";
 
 export default function Home() {
   const [showCreateSession, setShowCreateSession] = useState(false);
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState<string>();
   const [showLanguage, setShowLanguage] = useState(false);
   const [transition, setTransition] = useState<FeedbackTranslations>();
 
   useEffect(() => {
     async function data() {
+      if (language) return;
       const lang = document.cookie
         .split("; ")
         .find((row) => row.startsWith("lang="));
@@ -129,7 +130,7 @@ export default function Home() {
 
               {showLanguage && (
                 <LanguagePopup
-                  language={language}
+                  language={language as string}
                   setLanguage={setLanguage}
                   setShowLanguage={setShowLanguage}
                 />

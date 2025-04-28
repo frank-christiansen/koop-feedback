@@ -102,7 +102,7 @@ export default function SessionPage() {
         setUser(data.user);
         setSession(mockSession);
       } catch (err) {
-        toast.error("Failed to load session");
+        toast.error(transition?.toats.failedToLoadSession);
       } finally {
         setIsLoading(false);
       }
@@ -117,7 +117,7 @@ export default function SessionPage() {
     if (!selectedUser || !feedbackType.trim()) return;
 
     if (feedbackDescription.length <= 0) {
-      toast.error("Please enter a description");
+      toast.error(transition?.toats.noDescription);
       return;
     }
 
@@ -135,17 +135,17 @@ export default function SessionPage() {
     setSelectedUser(null);
     setFeedbackType("");
     setFeedbackDescription("");
-    toast.success("Feedback added!");
+    toast.success(transition?.toats.feedbackAdded);
   };
 
   const handleRemoveFeedback = (id: string) => {
     setFeedbacks((prev) => prev.filter((feedback) => feedback.Id !== id));
-    toast.info("Feedback removed");
+    toast.info(transition?.toats.feedbackRemoved);
   };
 
   const handleSubmitAllFeedback = async () => {
     if (feedbacks.length === 0) {
-      toast.warning("No feedback to submit");
+      toast.warning(transition?.toats.noFeedbackSent);
       return;
     }
 
@@ -164,7 +164,9 @@ export default function SessionPage() {
       });
       const data = await req.json();
       if (req.status === 200) {
-        toast.success(`${feedbacks.length} feedback items submitted!`);
+        toast.success(
+          `${feedbacks.length} ${transition?.toats.feedbackSendedItems}!`
+        );
       } else toast.error(data.error);
     });
 

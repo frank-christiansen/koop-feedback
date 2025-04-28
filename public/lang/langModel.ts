@@ -71,6 +71,9 @@ interface FeedbackTranslations {
         feedbackSent: string;
         sessionEnded: string;
         sessionNotFound: string;
+        sessionErrorCreating: string;
+        noFeedbackSent: string;
+        feedbackSendedItems: string;
         sessionCodeInvalid: string;
         feedbackNotFound: string;
         feedbackSentError: string;

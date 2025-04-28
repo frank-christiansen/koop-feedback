@@ -84,10 +84,10 @@ export default function JoinSession() {
                       if (res.status === 200) {
                         window.location.href = "/feedback/start";
                       } else {
-                        toast.error("Error joining session. Please try again.");
+                        toast.error(transition?.toats.errorByJoiningSession);
                       }
                     } else {
-                      toast.error("Please enter a valid name.");
+                      toast.error(transition?.toats.noName);
                     }
                   }}
                   variant="outline"

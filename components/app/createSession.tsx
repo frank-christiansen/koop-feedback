@@ -47,7 +47,7 @@ export function CreateSession() {
 
     const res = await req.json();
     if (res.success) {
-      toast("Session created successfully", {
+      toast(transition?.toats.sessionCreated, {
         type: "success",
         position: "top-right",
         autoClose: 2000,
@@ -62,7 +62,7 @@ export function CreateSession() {
         router.push("/feedback/start");
       }, 1000);
     } else {
-      toast("Failed to create session", {
+      toast(transition?.toats.sessionErrorCreating, {
         type: "error",
         position: "top-right",
         autoClose: 2000,
