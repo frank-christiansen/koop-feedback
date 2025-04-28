@@ -29,7 +29,11 @@ export default function Home() {
   useEffect(() => {
     async function data() {
       if (language) return;
-      setLanguage("en");
+
+      // Hole die Sprache aus dem Browser
+      const browserLang = navigator.language.split("-")[0]; // z. B. "en-US" -> "en"
+      setLanguage(browserLang);
+
       const lang = document.cookie
         .split("; ")
         .find((row) => row.startsWith("lang="));
@@ -45,7 +49,7 @@ export default function Home() {
       await dbData();
     }
     data();
-  });
+  }, [language]);
 
   const handleLanguageChange = async (value: string) => {
     setLanguage(value);
