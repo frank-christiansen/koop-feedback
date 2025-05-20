@@ -104,18 +104,18 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="mt-12 pt-8 border-t border-white/20 flex flex-col md:flex-row justify-between items-center">
             <p className="text-white/60 text-sm">
-              © 2025 Jesforge.dev. All rights reserved.
+              © 2025 xyzjesper.dev. All rights reserved.
             </p>
             <div className="flex items-center space-x-4">
               <Link
-                href="https://jesforge.dev"
+                href="https://xyzjesper.dev"
                 className="text-white/60 hover:text-white transition-colors"
               >
                 {transition?.mainpage.footer.privacy}
               </Link>
               <span className="text-white/60">|</span>
               <Link
-                href="https://jesforge.dev/impressum"
+                href="https://xyzjesper.dev/impressum"
                 className="text-white/60 hover:text-white transition-colors"
               >
                 {transition?.mainpage.footer.imprint}
