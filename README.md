@@ -1,5 +1,7 @@
 # 💬 Feedback Tool
 
+> ⚠️ Take a look at the new v2 branch for the upcoming updates. (recode in React and Go)
+
 A simple but powerful tool for capturing user feedback within sessions. Ideal for workshops, meetings, events or digital platforms with multiple participants.
 
 ## ✨ Features
