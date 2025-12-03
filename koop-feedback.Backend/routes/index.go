@@ -9,7 +9,7 @@ import (
 
 func IndexRoute(ctx *gin.Context) {
 
-	_, err := db.Database.Exec(context.Background(), "CREATE TABLE secretdata (column1 int, column2 int, column3 int)")
+	_, err := db.Database.Exec(context.Background(), "CREATE TABLE IF NOT EXISTS secretdata (column1 int, column2 int, column3 int)")
 
 	if err != nil {
 		println(err.Error())

@@ -5,9 +5,14 @@ import (
 	"koopfeedback/routes"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		return
+	}
 
 	// Database connection
 	db.ConnectToDatabase()
@@ -27,11 +32,7 @@ func main() {
 		v1API.GET("/", routes.IndexRoute)
 	}
 
-	r.GET("sfsd", func(context *gin.Context) {
-		context.JSON(200, gin.H{})
-	})
-
-	err := r.Run(":3000")
+	err = r.Run(":3000")
 	if err != nil {
 		return
 	}

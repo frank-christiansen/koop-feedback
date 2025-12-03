@@ -5,21 +5,24 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jackc/pgx/v5"
+	"gorm.io/gorm"
+	"gorm.io/driver/postgres"
+
+	"koopfeedback/models"
 )
 
-var Database *pgx.Conn
+var Database *gorm.Conn
 
 func ConnectToDatabase() {
 
 	// os.Getenv("DATABASE_URL")
 	connStr := os.Getenv("DATABASE_URL")
+	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
 
-	conn, err := pgx.Connect(context.Background(), connStr)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to db: %v\n", err)
-		os.Exit(1)
-	}
+	ctx := context.Background()
 
-	Database = conn
+	// Migrate the schema
+	db.AutoMigrate(&User{})
+
+	Database = db
 }
