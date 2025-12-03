@@ -1,28 +1,34 @@
 package db
 
 import (
-	"context"
-	"fmt"
 	"os"
 
-	"gorm.io/gorm"
 	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 
-	"koopfeedback/models"
+	"koopfeedback/db/models"
 )
 
-var Database *gorm.Conn
+var Database *gorm.DB
 
 func ConnectToDatabase() {
 
 	// os.Getenv("DATABASE_URL")
 	connStr := os.Getenv("DATABASE_URL")
-	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
+	db, dbErr := gorm.Open(postgres.Open(connStr), &gorm.Config{})
 
-	ctx := context.Background()
+	if dbErr != nil {
+		println("Failed to connect to database.")
+		return
+	}
 
 	// Migrate the schema
-	db.AutoMigrate(&User{})
+	dbMigrateErr := db.AutoMigrate(&models.User{}, &models.Feedback{}, &models.Session{})
+
+	if dbMigrateErr != nil {
+		panic("Failed to migrate the database...")
+		return
+	}
 
 	Database = db
 }
