@@ -1,0 +1,90 @@
+{
+    "mainpage": {
+        "title": "Welcome to Koop Feedback",
+        "subtitle": " Create or join a feedback session.",
+        "button": {
+            "createSessionBtn": "Create New Session"
+        },
+        "infomsg": "Or join with code",
+        "code": {
+            "label": "Session Code",
+            "placeholder": "Enter session code",
+            "button": "Join"
+        },
+        "footer": {
+            "imprint": "Impressum",
+            "privacy": "Terms of Service & Privacy Policy"
+        }
+    },
+    "createSession": {
+        "title": "Create New Session",
+        "subtitle": "Enter your name to start a new quiz session",
+        "name": {
+            "label": "Your Name",
+            "placeholder": "Enter your name"
+        },
+        "button": {
+            "createSessionBtn": "Create Session",
+            "creating": "Creating..."
+        }
+    },
+    "sessions": {
+        "qrcode": {
+            "title": "Join Session",
+            "subtitle": "Scan the QR code to join the session"
+        },
+        "member": "Participants",
+        "startSession": {
+            "button": "Start Session"
+        }
+    },
+    "runSession": {
+        "header": {
+            "sessionCode": "Session Code",
+            "loggedIn": "Logged In as"
+        },
+        "member": "Participants",
+        "alreadySubmitted": " Feedback already submitted",
+        "alreadySubmittedTooltip": "Please wait for the host to finish the session.",
+        "feedbackReady": "feedback items ready",
+        "feedback": {
+            "feedback": "Your Feedbacks",
+            "placeholder": "No feedback added yet"
+        },
+        "button": {
+            "sendFeedbackBtn": "Submit your Feedback",
+            "endSessionBtn": "End Session",
+            "cancelBtn": "Cancel"
+        }
+    },
+    "endSession": {
+        "title": "Feedback",
+        "noFeedback": "No feedback available. Please check back later.",
+        "button": {
+            "logoutBtn": "Logout"
+        }
+    },
+    "toats": {
+        "sessionCreated": "Session created successfully",
+        "sessionStarted": "Session started successfully",
+        "sessionJoined": "Session joined successfully",
+        "feedbackSent": "Feedback sent successfully",
+        "sessionEnded": "Session ended successfully",
+        "sessionNotFound": "Session not found",
+        "sessionCodeInvalid": "Invalid session code",
+        "feedbackNotFound": "Feedback not found",
+        "sessionErrorCreating": "Failed to create session",
+        "feedbackSendedItems": "feedback items submitted",
+        "noFeedbackSent": "No feedback sent",
+        "feedbackSentError": "Error sending feedback",
+        "sessionEndedError": "Error ending session",
+        "feedbackAdded": "Feedback added successfully",
+        "feedbackRemoved": "Feedback removed successfully",
+        "failedToLoadSession": "Failed to load session",
+        "failedToLoadFeedback": "Failed to load feedback",
+        "errorByJoiningSession": "Error joining session",
+        "noName": "Please enter your name",
+        "noDescription": "Please enter a description",
+        "copiedSessionCode": "Session code copied to clipboard"
+    }
+}
