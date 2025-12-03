@@ -13,7 +13,7 @@ var Database *pgx.Conn
 func ConnectToDatabase() {
 
 	// os.Getenv("DATABASE_URL")
-	connStr := "postgres://root:6CvTq5FnbeyTKlCFSUrNJcL6ByjGuIArm0hGW@192.168.1.97:5332/koop-feedback"
+	connStr := os.Getenv("DATABASE_URL")
 
 	conn, err := pgx.Connect(context.Background(), connStr)
 	if err != nil {
