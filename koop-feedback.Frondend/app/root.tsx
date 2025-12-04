@@ -4,6 +4,7 @@ import type {Route} from "./+types/root";
 import "./app.css";
 import React from "react";
 import TranslationContextProvider from "~/context/Translation";
+import {ToastContainer} from "react-toastify";
 
 export const links: Route.LinksFunction = () => [
     {rel: "preconnect", href: "https://fonts.googleapis.com"},
@@ -28,11 +29,14 @@ export function Layout({children}: { children: React.ReactNode }) {
             <Links/>
         </head>
         <body>
-        <TranslationContextProvider>
-            {children}
-        </TranslationContextProvider>
-        <ScrollRestoration/>
-        <Scripts/>
+        <div className="bg-stone-800">
+            <ToastContainer/>
+            <TranslationContextProvider>
+                {children}
+            </TranslationContextProvider>
+            <ScrollRestoration/>
+            <Scripts/>
+        </div>
         </body>
         </html>
     );

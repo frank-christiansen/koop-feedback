@@ -6,87 +6,71 @@ import {toast} from "react-toastify";
 import {useTranslation} from "~/context/Translation";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "~/components/ui/card";
 import {Button} from "~/components/ui/button";
-
-export interface Session {
-    Users: User[];
-    SessionId: string;
-    Code: number;
-    Host: User;
-    CreatedAt: Date;
-    IsStarted: boolean;
-    IsFinished: boolean;
-}
-
-export interface User {
-    UserId: string;
-    SessionId: string;
-    Name: string;
-    IsHost: boolean;
-    CreatedAt: Date;
-}
+import type {DefaultAPIResponse, GETSessionResponseData} from "../../../../types/API";
+import type {User} from "../../../../types/User";
+import Loading from "~/components/app/Loading";
+import Session404 from "~/components/app/Session404";
 
 export default function SessionPage() {
-    const [session, setSession] = useState<Session | null>(null);
-    const [user, setUser] = useState<User | null>(null);
+    const [data, setData] = useState<GETSessionResponseData | null>(null);
+    const [authId, setAuthId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const {translations} = useTranslation()
 
     useEffect(() => {
         const fetchSession = async () => {
             try {
-                const authId = await cookieStore.get("authId")
-                if (!authId) {
+                const authIdCookie = await cookieStore.get("authId")
+                if (!authIdCookie) {
                     window.location.href = "/";
                     return;
                 }
+                setAuthId(authIdCookie.value as string)
 
                 const req = await fetch("/api/v2/session", {
                     method: "GET",
                     headers: {
-                        "Authorization": authId.value as string,
+                        "Authorization": authIdCookie.value as string,
                         "Content-Type": "application/json",
                     },
                 });
-                const data = await req.json();
+                const apiData = await req.json() as DefaultAPIResponse<GETSessionResponseData>
 
-                console.log(data)
+                if (apiData.Data.Session.IsStarted) {
+                    window.open("/feedback/run", "_self")
+                }
 
-                setSession(data.Data.Session)
+                setData(apiData.Data)
             } catch (error) {
                 toast.error(translations?.toats.failedToLoadSession);
-                console.error(error);
+                window.open("/", "_self")
             } finally {
                 setIsLoading(false);
             }
         };
 
-        // Direkt einmal ausführen
-        fetchSession();
-
-        // Intervall alle 10 Sekunden
-        const interval = setInterval(fetchSession, 1000);
-
-        // Cleanup bei Unmount
+        const interval = setInterval(fetchSession, 5000);
         return () => clearInterval(interval);
     }, []);
 
-    const copySessionCode = () => {
-        if (!session) return;
-        navigator.clipboard.writeText(session.Code.toString());
+    const copySessionCode = async () => {
+        if (!data) return;
+        await navigator.clipboard.writeText(data.Session.Code.toString());
         toast.success(translations?.toats.copiedSessionCode);
     };
 
     const startSession = async () => {
-        const req = await fetch("/api/v1/session/start", {
+        const req = await fetch("/api/v2/session/start", {
             method: "POST",
             headers: {
+                "Authorization": authId as string,
                 "Content-Type": "application/json",
             },
         });
 
         const data = await req.json();
         if (req.status !== 200) {
-            toast(data.error, {
+            toast(data.Message, {
                 type: "error",
                 position: "top-right",
                 autoClose: 5000,
@@ -101,41 +85,21 @@ export default function SessionPage() {
         });
     };
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-            </div>
-        );
-    }
-
-    if (!session) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-                    <CardHeader>
-                        <CardTitle className="text-white">Session not found</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Button onClick={() => window.open("/")}>Go to Home</Button>
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
+    if (isLoading) return <Loading/>
+    if (!data) return <Session404/>
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-900 to-indigo-800">
             {/* Header */}
             <header className="py-4 px-6 border-b border-white/20 flex justify-between items-center">
-                <div>
+                <div onClick={copySessionCode} className={"cursor-pointer"}>
                     <div className="flex items-center space-x-2 mt-1">
-                        <span className="text-white/80  text-sm">Code: {session.Code}</span>
+                        <span className="text-white/80  text-sm">Code: {data.Session.Code}</span>
                         <Button
                             variant="ghost"
                             size="icon"
                             className="text-white/60 h-6 w-6"
-                            onClick={copySessionCode}
+
                         >
                             <Copy className="h-3 w-3"/>
                         </Button>
@@ -150,14 +114,14 @@ export default function SessionPage() {
                     <div className="lg:col-span-1">
                         <Card className="bg-white/10 backdrop-blur-sm border-white/20">
                             <CardHeader>
-                                <CardTitle className="text-white">
+                                <CardTitle className="text-white cursor-pointer">
                                     {translations?.sessions.qrcode.title} -{" "}
                                     <Copy
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(
-                                                `http://${window.location.host}?join=${session.Code}`
+                                        onClick={async () => {
+                                            await navigator.clipboard.writeText(
+                                                `http://${window.location.host}?join=${data?.Session.Code}`
                                             );
-                                            toast.success(translations?.toats.copiedSessionCode);
+                                            toast.info(translations?.toats.copiedSessionCode)
                                         }}
                                         className="inline-flex"
                                         height={15}
@@ -171,7 +135,7 @@ export default function SessionPage() {
                             <CardContent className="flex justify-center items-center h-48">
                                 <div className="bg-white/10 p-4 rounded-lg shadow-lg">
                                     <img
-                                        src={`https://api.qrserver.com/v1/create-qr-code/?data=http://${window.location.host}?join=${session.Code}&size=1000x1000`}
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?data=http://${window.location.host}?code=${data.Session.Code}&size=1000x1000`}
                                         alt="QR Code"
                                         className="w-32 h-32"
                                     />
@@ -186,10 +150,10 @@ export default function SessionPage() {
                             <CardHeader>
                                 <div className="flex justify-between items-center">
                                     <CardTitle className="text-white">
-                                        {translations?.sessions.member} ({session.Users.length})
+                                        {translations?.sessions.member} ({data.Users.length})
                                     </CardTitle>
-                                    {session.Host.UserId === user?.UserId &&
-                                        !session.IsStarted && (
+                                    {
+                                        (!data.Session.IsStarted && data.Self.IsHost) && (
                                             <Button
                                                 variant="default"
                                                 className="bg-blue-500 text-white hover:bg-blue-600"
@@ -197,34 +161,35 @@ export default function SessionPage() {
                                             >
                                                 {translations?.sessions.startSession.button}
                                             </Button>
-                                        )}
+                                        )
+                                    }
                                 </div>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-4">
                                     {/* Other participants */}
-                                    {session.Users.map((participant: User) => (
+                                    {data.Users.map((user: User) => (
                                         <div
-                                            key={participant.UserId}
+                                            key={user.ID}
                                             className="flex items-center p-3 bg-white/5 rounded-lg"
                                         >
                                             <div className="ml-4 flex-1">
                                                 <h3 className="text-white font-medium">
-                                                    {participant.Name}
+                                                    {user.Name}
                                                 </h3>
                                             </div>
-                                            {participant.IsHost ? (
+                                            {user.IsHost ? (
                                                 <Crown className="text-yellow-400 h-5 w-5"/>
                                             ) : (
-                                                session.Host.UserId === user?.UserId && (
+                                                data.Self.IsHost && (
                                                     <Trash
                                                         onClick={() => {
                                                             fetch(
-                                                                "/api/v1/user/remove?user=" +
-                                                                participant.UserId,
+                                                                `/api/v2/user/${user.ID}`,
                                                                 {
                                                                     method: "DELETE",
                                                                     headers: {
+                                                                        "Authorization": authId as string,
                                                                         "Content-Type": "application/json",
                                                                     },
                                                                 }
@@ -232,7 +197,7 @@ export default function SessionPage() {
                                                                 .then((res) => {
                                                                     if (!res.ok) {
                                                                         throw new Error(
-                                                                            "Failed to remove participant"
+                                                                            "Failed to remove user"
                                                                         );
                                                                     }
                                                                     return res.json();
@@ -245,7 +210,7 @@ export default function SessionPage() {
                                                                     });
                                                                 });
                                                         }}
-                                                        className="text-red-400 h-5 w-5"
+                                                        className="text-red-400 h-5 w-5 cursor-pointer"
                                                     />
                                                 )
                                             )}

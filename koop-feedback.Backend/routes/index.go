@@ -7,7 +7,7 @@ import (
 func IndexRoute(ctx *gin.Context) {
 
 	ctx.JSON(200, gin.H{
-		"message": "Koop-Feedback API Endpoint...",
+		"message": "Koop-Feedback APIAuth Endpoint...",
 	})
 	return
 }

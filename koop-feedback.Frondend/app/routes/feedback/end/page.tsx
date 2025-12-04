@@ -4,65 +4,57 @@ import {useEffect, useState} from "react";
 import {useTranslation} from "~/context/Translation";
 import {Card, CardContent} from "~/components/ui/card";
 import {Button} from "~/components/ui/button";
-
-interface Feedback {
-    Type: string;
-    Description: string;
-    CreatedAt: string;
-    Id: string;
-}
+import {FeedbackType} from "../../../../types/FeedbackType";
+import type {Feedback} from "../../../../types/Feedback";
+import Loading from "~/components/app/Loading";
+import type {DefaultAPIResponse} from "../../../../types/API";
+import {Textarea} from "~/components/ui/textarea";
 
 export default function SessionPage() {
     const [isLoading, setIsLoading] = useState(true);
-    const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-    const [user, setUser] = useState<any>(null);
+    const [feedbacks, setFeedbacks] = useState<Feedback[] | null>([]);
     const {translations} = useTranslation()
 
     useEffect(() => {
         const fetchSession = async () => {
 
-            const req = await fetch("/api/v1/user/feedback", {
+            const authIdCookie = await cookieStore.get("authId")
+            if (!authIdCookie) {
+                window.location.href = "/";
+                return;
+            }
+            const req = await fetch("/api/v2/user/feedback", {
                 method: "GET",
                 headers: {
+                    "Authorization": authIdCookie.value as string,
                     "Content-Type": "application/json",
                 },
             });
-            const userreq = await fetch("/api/v1/user", {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
+            const feedback = await req.json() as DefaultAPIResponse<Feedback[]>
 
-            const user = await userreq.json();
+            if (feedback.Message == "NotActive") return window.open("/feedback/run", "_self")
 
-            setUser(user.user);
-            const res = await req.json();
-
-            setFeedbacks(res.feedback);
+            setFeedbacks(feedback.Data);
             setIsLoading(false);
         };
         fetchSession();
     }, []);
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-            </div>
-        );
-    }
+    if (isLoading) return <Loading/>
 
     const logoutSession = async () => {
-        const req = await fetch("/api/v1/user/logout", {
-            method: "POST",
+        const authIdCookie = await cookieStore.get("authId")
+        await fetch("/api/v2/user/logout", {
+            method: "DELETE",
             headers: {
+                "Authorization": authIdCookie?.value as string,
                 "Content-Type": "application/json",
             },
         });
+        feedbacks &&
 
-        window.location.href = req.url;
-    };
+        window.open("/", "_self")
+    }
 
     return (
         <div className="min-h-screen p-6 bg-gradient-to-br from-purple-900 to-indigo-800 text-white">
@@ -71,26 +63,30 @@ export default function SessionPage() {
                     {translations?.endSession.title}
                 </h1>
             </div>
-            {feedbacks.length === 0 ? (
+            {(feedbacks == null || !feedbacks || feedbacks.length === 0) ? (
                 <p className="text-center text-white/60 text-xl">
                     {translations?.endSession.noFeedback}
                 </p>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {feedbacks
-                        .sort((a, b) => (a.Type === "positive" ? -1 : 1))
+                        .sort((a, b) => (a.Type == FeedbackType.Positive ? -1 : 1))
                         .map((fb) => {
-                            const isPositive = fb.Type === "positive";
+                            const isPositive = fb.Type == FeedbackType.Positive;
                             const cardColor = isPositive ? "bg-green-500" : "bg-yellow-500";
                             return (
                                 <Card
-                                    key={fb.Id}
+                                    key={Math.round(Math.random() * 1000)}
                                     className={`rounded-2xl p-4 shadow-lg border border-white/20 backdrop-blur-md text-white translations-transform transform hover:scale-105 ${cardColor}`}
                                 >
                                     <CardContent>
-                                        <p className="text-lg leading-relaxed text-white/95 font-medium text-center">
-                                            {fb.Description}
-                                        </p>
+                                        <Textarea
+                                            className="text-lg leading-relaxed text-white/95 font-medium text-center cursor-default resize-none outline-0 ring-0 border-0"
+                                            disabled={true}
+                                            value={
+                                                fb.Description
+                                            }
+                                        ></Textarea>
                                     </CardContent>
                                 </Card>
                             );

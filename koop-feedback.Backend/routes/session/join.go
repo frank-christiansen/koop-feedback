@@ -21,7 +21,12 @@ func JoinSession(ctx *gin.Context) {
 
 	bCtx := context.Background()
 	db := db2.Database
-	body := util.APIBindBody[POSTJoinSession](ctx)
+	body, hasBody := util.APIBindBody[POSTJoinSession](ctx)
+
+	if !hasBody {
+		util.APIErrorResponse[POSTJoinSession](ctx, "INVALID_BODY", http.StatusConflict)
+		return
+	}
 
 	authId := uuid.New().String()
 
@@ -31,7 +36,9 @@ func JoinSession(ctx *gin.Context) {
 		return
 	}
 	err = gorm.G[models.User](db).Create(bCtx, &models.User{
-		APIAuthId:    authId,
+		APIAuth: &models.APIAuth{
+			Token: authId,
+		},
 		Name:         body.Name,
 		HasSubmitted: false,
 		IsHost:       false,

@@ -2,6 +2,15 @@
   <profile version="1.0">
     <option name="myName" value="Project Default" />
     <inspection_tool class="Eslint" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="GoDfaErrorMayBeNotNil" enabled="true" level="WARNING" enabled_by_default="true">
+      <functions>
+        <function importPath="github.com/go-co-op/gocron/v2" name="NewScheduler" />
+      </functions>
+      <methods>
+        <method importPath="gorm.io/gorm" receiver="ChainInterface" name="First" />
+        <method importPath="github.com/go-co-op/gocron/v2" receiver="Scheduler" name="NewJob" />
+      </methods>
+    </inspection_tool>
     <inspection_tool class="SqlNoDataSourceInspection" enabled="false" level="WARNING" enabled_by_default="false" />
   </profile>
 </component>

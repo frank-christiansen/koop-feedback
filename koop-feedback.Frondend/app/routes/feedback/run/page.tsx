@@ -9,91 +9,59 @@ import {Check, Crown, Meh, Send, Smile, Trash, X} from "lucide-react";
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from "~/components/ui/dialog";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "~/components/ui/select";
 import {Textarea} from "~/components/ui/textarea";
-
-export interface Session {
-    Users: User[];
-    SessionId: string;
-    Code: number;
-    Host: User;
-    CreatedAt: Date;
-    IsStarted: boolean;
-    IsFinished: boolean;
-    DoneUsers: string[];
-}
-
-export interface User {
-    UserId: string;
-    SessionId: string;
-    Name: string;
-    IsHost: boolean;
-    CreatedAt: Date;
-    UserVotedForThisUser: string[];
-    IsDone: boolean;
-    Feedback: {
-        Type: string;
-        Description: string;
-        CreatedAt: Date;
-    }[];
-}
-
-export interface Feedback {
-    Type: string;
-    Description: string;
-    Id: string;
-    forUser: {
-        Name: string;
-        UserId: string;
-    };
-}
+import type {DefaultAPIResponse, GETSessionResponseData, POSTSessionFeedbackResponseData} from "../../../../types/API";
+import type {User} from "../../../../types/User";
+import type {Feedback} from "../../../../types/Feedback";
+import {FeedbackType} from "../../../../types/FeedbackType";
+import Session404 from "~/components/app/Session404";
+import Loading from "~/components/app/Loading";
 
 export default function SessionPage() {
-    const [session, setSession] = useState<Session | null>(null);
-    const [user, setUser] = useState<User | null>(null);
+    const [data, setData] = useState<GETSessionResponseData | null>(null);
+    const [authId, setAuthId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
-    const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-    const [feedbackType, setFeedbackType] = useState("");
-    const [feedbackDescription, setFeedbackDescription] = useState("");
+    const [feedback, setFeedback] = useState<Feedback[]>([]);
+    const [feedbackType, setFeedbackType] = useState<FeedbackType>();
+    const [feedbackDescription, setFeedbackDescription] = useState<string>("");
     const {translations} = useTranslation()
 
     useEffect(() => {
         const fetchSession = async () => {
             try {
-                const req = await fetch("/api/v1/session");
-                const data = await req.json();
-                const userReq = await fetch("/api/v1/user?user=" + data.session.Host);
-                const userData = await userReq.json();
+                const authIdCookie = await cookieStore.get("authId")
+                if (!authIdCookie) {
+                    window.location.href = "/";
+                    return;
+                }
+                setAuthId(authIdCookie.value as string)
 
-                const mockSession = {
-                    Users: data.session.Users,
-                    SessionId: data.session.SessionId,
-                    Code: data.session.Code,
-                    Host: userData.user,
-                    CreatedAt: data.session.CreatedAt,
-                    IsStarted: data.session.IsStarted,
-                    IsFinished: data.session.IsFinished,
-                    DoneUsers: data.session.DoneUsers,
-                };
+                const req = await fetch("/api/v2/session", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": authIdCookie.value as string,
+                        "Content-Type": "application/json",
+                    },
+                });
+                const apiData = await req.json() as DefaultAPIResponse<GETSessionResponseData>
 
-                if (mockSession.IsFinished)
-                    return (window.location.href = "/feedback/end");
+                if (apiData?.Data.Session.IsFinished) return window.open("/feedback/end", "_self")
 
-                setUser(data.user);
-                setSession(mockSession);
-            } catch (err) {
+                setData(apiData.Data)
+            } catch (error) {
                 toast.error(translations?.toats.failedToLoadSession);
+                window.open("/", "_self")
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchSession();
-        const interval = setInterval(fetchSession, 1000);
+        const interval = setInterval(fetchSession, 5000);
         return () => clearInterval(interval);
     }, []);
 
     const handleAddFeedback = async () => {
-        if (!selectedUser || !feedbackType.trim()) return;
+        if (!selectedUser) return;
 
         if (feedbackDescription.length <= 0) {
             toast.error(translations?.toats.noDescription);
@@ -101,79 +69,65 @@ export default function SessionPage() {
         }
 
         const newFeedback = {
+            Id: feedback.length + 1,
             Type: feedbackType,
             Description: feedbackDescription,
-            Id: Date.now().toString(),
-            forUser: {
-                Name: selectedUser.Name,
-                UserId: selectedUser.UserId,
-            },
-        };
+            UserId: selectedUser.ID
+        } as Feedback
 
-        setFeedbacks((prev) => [...prev, newFeedback]);
+        setFeedback((prev) => [...prev, newFeedback]);
         setSelectedUser(null);
-        setFeedbackType("");
+        setFeedbackType(0);
         setFeedbackDescription("");
         toast.success(translations?.toats.feedbackAdded);
     };
 
-    const handleRemoveFeedback = (id: string) => {
-        setFeedbacks((prev) => prev.filter((feedback) => feedback.Id !== id));
+    const handleRemoveFeedback = (id: number) => {
+        setFeedback((prev) => prev.filter((feedback) => feedback.Id !== id));
         toast.info(translations?.toats.feedbackRemoved);
     };
 
     const handleSubmitAllFeedback = async () => {
-        if (feedbacks.length === 0) {
+        if (feedback.length === 0) {
             toast.warning(translations?.toats.noFeedbackSent);
             return;
         }
 
-        for (const feedback of feedbacks) {
-            const req = await fetch("/api/v1/user/feedback", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    type: feedback.Type,
-                    description: feedback.Description,
-                    userSessionId: session?.SessionId,
-                    feedbackUser: feedback.forUser.UserId,
-                }),
-            });
-            const data = await req.json();
-            if (req.status === 200) {
-                toast.success(
-                    `${feedbacks.length} ${translations?.toats.feedbackSendedItems}!`
-                );
-            } else toast.error(data.error);
-        }
+        const req = await fetch(`/api/v2/session/feedback`, {
+            method: "POST",
+            headers: {
+                "Authorization": authId as string,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                Feedback: feedback
+            }),
+        });
+        const feedbackRes = await req.json() as DefaultAPIResponse<POSTSessionFeedbackResponseData>
+        if (feedbackRes.Success) {
+            toast.info(
+                `${feedback.length} ${translations?.toats.feedbackSendedItems}!`
+            );
+            if (feedbackRes.Data.Success > 0) toast.success(
+                `${feedbackRes.Data.Success} SUCCESS`
+            );
+            if (feedbackRes.Data.Failed > 0) toast.error(
+                `${feedbackRes.Data.Failed} FAILED`
+            );
 
-        setFeedbacks([]);
+        } else toast.error(feedbackRes.Message);
+
+
+        setFeedback([]);
     };
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-            </div>
-        );
-    }
+    if (isLoading)
+        return <Loading></Loading>
 
-    if (!session) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-                    <CardHeader>
-                        <CardTitle className="text-white">Session not found</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Button onClick={() => window.open("/")}>Go to Home</Button>
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
+
+    if (!data)
+        return <Session404></Session404>
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-900 to-indigo-800">
@@ -184,12 +138,12 @@ export default function SessionPage() {
           </span>
                     <span className="text-white/80 text-sm">-</span>
                     <span className="text-white/80 text-sm">
-            {translations?.runSession.header.loggedIn}: {user?.Name}
+            {translations?.runSession.header.loggedIn}: {data.Self?.Name}
           </span>
                 </div>
             </header>
 
-            {user?.IsDone && user.UserId != session.Host.UserId && (
+            {(data?.Self.HasSubmitted && !data.Self.IsHost) && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                     <Card className="bg-white/10 backdrop-blur-sm border border-white/20 shadow-2xl w-[90%] max-w-md">
                         <CardHeader>
@@ -213,63 +167,51 @@ export default function SessionPage() {
                             <CardHeader>
                                 <div className="flex justify-between items-center">
                                     <CardTitle className="text-white">
-                                        {translations?.runSession.member} ({session.Users.length})
+                                        {translations?.runSession.member} ({data.Users.length})
                                     </CardTitle>
-                                    {feedbacks.length > 0 && (
+                                    {feedback.length > 0 && (
                                         <span className="text-sm text-white/80">
-                      {feedbacks.length} {translations?.runSession.feedbackReady}
+                      {feedback.length} {translations?.runSession.feedbackReady}
                     </span>
                                     )}
                                 </div>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-3">
-                                    {session.Users.sort((a, b) => {
+                                    {data.Users.sort((a: { Name: string; }, b: { Name: string; }) => {
                                         const nameA = a.Name.toLowerCase();
                                         const nameB = b.Name.toLowerCase();
                                         if (nameA < nameB) return -1;
                                         if (nameA > nameB) return 1;
                                         return 0;
-                                    }).map((participant) => (
+                                    }).map((user) => (
                                         <div
-                                            key={participant.UserId}
-                                            className="bg-white/5 rounded-lg overflow-hidden"
+                                            key={user.ID}
+                                            className="bg-white/5 rounded-lg overflow-hidden cursor-pointer"
                                         >
                                             <div
-                                                className={`p-3 flex items-center justify-between ${
-                                                    selectedUser?.UserId === participant.UserId &&
-                                                    !session.DoneUsers.includes(user?.UserId ?? "")
-                                                        ? "bg-indigo-500/30"
-                                                        : "hover:bg-white/10"
-                                                } ${
-                                                    !session.DoneUsers.includes(user?.UserId ?? "")
-                                                        ? "cursor-pointer"
-                                                        : ""
-                                                }`}
+                                                className={`p-3 flex items-center justify-between`}
                                                 onClick={() => {
-                                                    if (session.DoneUsers.includes(user?.UserId ?? "")) {
-                                                        return;
-                                                    } else {
-                                                        setSelectedUser(participant);
+                                                    if (data?.Self.ID != user.ID && !data?.Self.HasSubmitted) {
+                                                        setSelectedUser(user);
                                                     }
                                                 }}
                                             >
                                                 <div className="flex items-center space-x-3">
                                                     <div>
                                                         <h3 className="text-white font-medium flex items-center">
-                                                            {participant.Name}
-                                                            {participant.IsHost && (
+                                                            <span
+                                                                className={`${(data?.Self.ID == user.ID || data?.Self.HasSubmitted) && "blur-xs"}`}> {user.Name}</span>
+                                                            {user.IsHost && (
                                                                 <Crown className="text-yellow-400 h-4 w-4 ml-2"/>
                                                             )}
-                                                            {session.Host.UserId == user?.UserId &&
-                                                                (session.DoneUsers.includes(
-                                                                    participant.UserId
-                                                                ) ? (
-                                                                    <Check
-                                                                        className="text-green-400 h-4 w-4 ml-2"></Check>
-                                                                ) : (
-                                                                    <X className="text-red-400 h-4 w-4 ml-2"/>
-                                                                ))}
+                                                            {data.Self.IsHost && ((user.HasSubmitted) ? (
+                                                                <Check
+                                                                    className="text-green-400 h-4 w-4 ml-2"></Check>
+                                                            ) : (
+                                                                <X className="text-red-400 h-4 w-4 ml-2"/>
+                                                            ))
+                                                            }
                                                         </h3>
                                                     </div>
                                                 </div>
@@ -282,26 +224,26 @@ export default function SessionPage() {
                                     <h3 className="text-white font-medium mb-3">
                                         {translations?.runSession.feedback.feedback}
                                     </h3>
-                                    {feedbacks.length === 0 ? (
+                                    {feedback.length === 0 ? (
                                         <p className="text-white/60 text-sm">
                                             {translations?.runSession.feedback.placeholder}
                                         </p>
                                     ) : (
                                         <div className="space-y-2">
-                                            {feedbacks
+                                            {feedback
                                                 .sort((a, b) => {
-                                                    const nameCompare = a.forUser.Name.localeCompare(
-                                                        b.forUser.Name
+                                                    const nameCompare = data.Users.filter(value => value.ID == a.UserId)[0].Name.localeCompare(
+                                                        data.Users.filter(value => value.ID == b.UserId)[0].Name
                                                     );
                                                     if (nameCompare !== 0) return nameCompare;
 
-                                                    return a.Type === "positive" ? -1 : 1;
+                                                    return a.Type == FeedbackType.Positive ? -1 : 1;
                                                 })
                                                 .map((feedback) => (
                                                     <div
                                                         key={feedback.Id}
                                                         className={`p-3 rounded-lg flex justify-between items-center ${
-                                                            feedback.Type == "positive"
+                                                            feedback.Type == FeedbackType.Positive
                                                                 ? "bg-green-500 text-black"
                                                                 : "bg-yellow-500"
                                                         }`}
@@ -309,7 +251,7 @@ export default function SessionPage() {
                                                         <div>
                                                             <p className="text-xl font-medium text-black flex items-center">
                                                                 <Send className="inline h-4 w-4 mr-1 "></Send>{" "}
-                                                                {feedback.forUser.Name}
+                                                                {data.Users.filter(value => value.ID == feedback.UserId)[0].Name}
                                                             </p>
                                                             <p className="text-sm mt-1 text-gray-700 font-semibold">
                                                                 {feedback.Description}
@@ -328,28 +270,23 @@ export default function SessionPage() {
                                         </div>
                                     )}
                                     <Button
-                                        className="w-full mt-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white"
+                                        className="w-full mt-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
                                         onClick={handleSubmitAllFeedback}
-                                        disabled={
-                                            feedbacks.length === 0 ||
-                                            session.DoneUsers.includes(user?.UserId as string)
-                                        }
+                                        disabled={data.Self.HasSubmitted}
                                     >
                                         {translations?.runSession.button.sendFeedbackBtn} (
-                                        {feedbacks.length})
+                                        {feedback.length})
                                     </Button>
-                                    {session.Host && session.Host.UserId == user?.UserId && (
+                                    {data.Self.IsHost && (
                                         <Button
-                                            className="w-full mt-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white"
+                                            className="w-full mt-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
                                             onClick={async () => {
-                                                const req = await fetch("/api/v1/session/end", {
+                                                const req = await fetch("/api/v2/session/end", {
                                                     method: "POST",
                                                     headers: {
+                                                        "Authorization": authId as string,
                                                         "Content-Type": "application/json",
                                                     },
-                                                    body: JSON.stringify({
-                                                        sessionId: session.SessionId,
-                                                    }),
                                                 });
                                                 if (req.status === 200) {
                                                     toast.success(translations?.toats.sessionEnded);
@@ -365,11 +302,14 @@ export default function SessionPage() {
                             </CardContent>
                         </Card>
                     </div>
-                    {" "}
+                    {
+                        " "
+                    }
                 </div>
             </main>
 
-            {/* Feedback Modal */}
+            {/* Feedback Modal */
+            }
             <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
                 <DialogContent
                     className="rounded-2xl shadow-xl border border-white/10 bg-[#1d112d]/80 backdrop-blur-md p-6">
@@ -382,8 +322,8 @@ export default function SessionPage() {
                     </DialogHeader>
                     <div className="space-y-4 pt-2">
                         <Select
-                            onValueChange={(value) => setFeedbackType(value)}
-                            defaultValue={feedbackType}
+                            onValueChange={(value) => setFeedbackType(parseInt(value))}
+                            defaultValue={feedbackType as any}
                         >
                             <SelectTrigger
                                 className="bg-white/5 border border-white/10 text-white hover:bg-[#aa77ff]/10 translations-all">
@@ -392,14 +332,14 @@ export default function SessionPage() {
                             <SelectContent
                                 className="bg-[#1d112d]/80 backdrop-blur-sm border border-white/20 text-white rounded-xl">
                                 <SelectItem
-                                    value="positive"
+                                    value={String(FeedbackType.Positive)}
                                     className="flex items-center gap-2 px-3 py-2 hover:bg-[#aa77ff]/10 focus:bg-[#aa77ff]/10"
                                 >
                                     <Smile className="h-4 w-4 text-green-500"/>
                                     <span className="text-white">Positiv</span>
                                 </SelectItem>
                                 <SelectItem
-                                    value="neutral"
+                                    value={String(FeedbackType.Normal)}
                                     className="flex items-center gap-2 px-3 py-2 hover:bg-[#aa77ff]/10 focus:bg-[#aa77ff]/10"
                                 >
                                     <Meh className="h-4 w-4 text-yellow-500"/>
@@ -418,22 +358,24 @@ export default function SessionPage() {
                         <div className="flex justify-end space-x-2 pt-2">
                             <Button
                                 variant="ghost"
-                                className="border border-white/10 text-white hover:bg-white/10 translations-all"
+                                className="border border-white/10 text-white hover:bg-white/10 translations-all cursor-pointer"
                                 onClick={() => setSelectedUser(null)}
                             >
                                 {translations?.runSession.button.cancelBtn}
                             </Button>
                             <Button
                                 onClick={handleAddFeedback}
-                                disabled={!feedbackType.trim()}
-                                className="bg-[#aa77ff] hover:bg-[#9d66cc] text-white translations-all"
+                                disabled={feedbackDescription.length < 10}
+                                className="bg-[#aa77ff] hover:bg-[#9d66cc] text-white translations-all cursor-pointer"
                             >
                                 {translations?.runSession.button.sendFeedbackBtn}
                             </Button>
                         </div>
+                        <span className={"text-white"}>min. {feedbackDescription.length}/10 characters</span>
                     </div>
                 </DialogContent>
             </Dialog>
         </div>
-    );
+    )
+        ;
 }

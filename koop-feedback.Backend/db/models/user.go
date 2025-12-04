@@ -6,13 +6,11 @@ import (
 
 type User struct {
 	gorm.Model
-	APIAuthId    string
 	Name         string
 	HasSubmitted bool
 	IsHost       bool
-
-	Feedback []Feedback
-
-	SessionID int
-	Session   Session
+	Feedback     []Feedback
+	APIAuth      *APIAuth
+	SessionID    int
+	Session      Session
 }

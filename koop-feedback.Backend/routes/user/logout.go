@@ -15,16 +15,15 @@ func UserLogoutRoute(ctx *gin.Context) {
 	db := db2.Database
 	bCtx := context.Background()
 
-	auth, _ := ctx.Get("authId")
+	userId, _ := ctx.Get("userId")
 
-	user, err := gorm.G[models.User](db).Preload("Feedback", nil).Where("api_auth_id = ?", auth).First(bCtx)
+	user, err := gorm.G[models.User](db).Preload("Feedback", nil).Where("id = ?", userId).First(bCtx)
 	if err != nil {
 		util.APIErrorResponse[any](ctx, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	db.Unscoped().Delete(&user.Feedback)
-	db.Unscoped().Delete(&user)
 
 	ctx.JSON(200, util.DefaultAPIResponse[any]{
 		Success: true,

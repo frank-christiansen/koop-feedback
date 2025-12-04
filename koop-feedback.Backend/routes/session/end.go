@@ -6,6 +6,7 @@ import (
 	"koopfeedback/db/models"
 	"koopfeedback/util"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -14,15 +15,15 @@ import (
 func EndSession(ctx *gin.Context) {
 	bCtx := context.Background()
 	db := db2.Database
-	authId, _ := ctx.Get("authId")
+	userId, _ := ctx.Get("userId")
 
-	isHost := util.DBCheckHostWithAuth(authId.(string))
+	isHost := util.DBCheckHostWithAuth(strconv.Itoa(userId.(int)))
 	if !isHost {
 		util.APIHostError(ctx)
 		return
 	}
 
-	user, err := gorm.G[models.User](db).Preload("Session", nil).Where("api_auth_id = ?", authId).First(bCtx)
+	user, err := gorm.G[models.User](db).Preload("Session", nil).Where("id = ?", userId).First(bCtx)
 	if err != nil {
 		util.APIErrorResponse[any](ctx, err.Error(), http.StatusInternalServerError)
 		return

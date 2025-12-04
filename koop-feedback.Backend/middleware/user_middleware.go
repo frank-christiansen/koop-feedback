@@ -29,7 +29,7 @@ func UserAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		_, err := gorm.G[models.User](db).Select("*").Where("api_auth_id = ?", authId).First(ctx)
+		user, err := gorm.G[models.APIAuth](db).Where("token = ?", authId).First(ctx)
 		if err != nil {
 			util.APIErrorResponse[any](c, "Unauthorized - No User", http.StatusUnauthorized)
 			c.Abort()
@@ -37,6 +37,7 @@ func UserAuthMiddleware() gin.HandlerFunc {
 		}
 
 		c.Set("authId", authId)
+		c.Set("userId", user.UserID)
 		c.Next()
 	}
 }

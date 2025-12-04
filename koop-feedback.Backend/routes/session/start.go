@@ -15,20 +15,29 @@ func StartSession(ctx *gin.Context) {
 
 	bCtx := context.Background()
 	db := db2.Database
-	authId, _ := ctx.Get("authId")
+	userId, _ := ctx.Get("userId")
 
-	isHost := util.DBCheckHostWithAuth(authId.(string))
+	isHost := util.DBCheckHostWithId(userId.(int))
 	if !isHost {
 		util.APIHostError(ctx)
 		return
 	}
 
-	user, err := gorm.G[models.User](db).Preload("Session", nil).Where("api_auth_id = ?", authId).First(bCtx)
+	user, err := gorm.G[models.User](db).Preload("Session", nil).Where("id = ?", userId).First(bCtx)
+	if err != nil {
+		util.APIErrorResponse[any](ctx, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	session, err := gorm.G[models.Session](db).Preload("Users", nil).Where("id = ?", user.SessionID).First(bCtx)
 	if err != nil {
 		util.APIErrorResponse[any](ctx, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	if len(session.Users) < 2 {
+		util.APIErrorResponse[any](ctx, "NotEnoughUsers", http.StatusConflict)
+		return
+	}
 	if user.Session.IsStarted {
 		util.APIErrorResponse[any](ctx, "IsStarted", http.StatusConflict)
 		return

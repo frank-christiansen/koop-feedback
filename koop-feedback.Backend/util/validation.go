@@ -4,7 +4,6 @@ import (
 	"context"
 	db2 "koopfeedback/db"
 	"koopfeedback/db/models"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -25,31 +24,30 @@ func APIErrorResponse[T any](ctx *gin.Context, err string, statusCode int) {
 	return
 }
 
-func APIBindBody[T any](ctx *gin.Context) (x *T) {
+func APIBindBody[T any](ctx *gin.Context) (x *T, y bool) {
 	var bind *T
 
 	err := ctx.ShouldBindBodyWithJSON(&bind)
 	if err != nil {
-		APIErrorResponse[any](ctx, err.Error(), http.StatusInternalServerError)
-		return
+		return bind, false
+	} else {
+		return bind, true
 	}
-	return bind
 }
 
-func APIBindUri[T any](ctx *gin.Context) (x *T) {
+func APIBindUri[T any](ctx *gin.Context) (x *T, y bool) {
 	var bind *T
 
 	err := ctx.ShouldBindUri(&bind)
 	if err != nil {
-		APIErrorResponse[any](ctx, err.Error(), http.StatusInternalServerError)
-		return
+		return bind, false
 	}
-	return bind
+	return bind, true
 }
 
 func DBCheckSelf(authId string, userId int) (x bool) {
 	db := db2.Database
-	_, err := gorm.G[models.User](db).Where("id = ? AND api_auth_id = ?", userId, authId).First(context.Background())
+	_, err := gorm.G[models.APIAuth](db).Where("user_id = ? AND token = ?", userId, authId).First(context.Background())
 
 	if err != nil {
 		return false
@@ -68,7 +66,7 @@ func DBCheckHostWithId(userId int) (x bool) {
 }
 func DBCheckHostWithAuth(authId string) (x bool) {
 	db := db2.Database
-	user, err := gorm.G[models.User](db).Where("api_auth_id = ?", authId).First(context.Background())
+	user, err := gorm.G[models.User](db).Where("id = ?", authId).First(context.Background())
 
 	if err != nil || !user.IsHost {
 		return false
@@ -76,10 +74,10 @@ func DBCheckHostWithAuth(authId string) (x bool) {
 	return true
 }
 
-func DBCheckSameSession(authId string, otherUserId int) (x bool) {
+func DBCheckSameSession(userId string, otherUserId int) (x bool) {
 	db := db2.Database
 
-	user1, err1 := gorm.G[models.User](db).Where("api_auth_id = ?", authId).First(context.Background())
+	user1, err1 := gorm.G[models.User](db).Where("id = ?", userId).First(context.Background())
 	user2, err2 := gorm.G[models.User](db).Where("id = ?", otherUserId).First(context.Background())
 
 	if err1 != nil || err2 != nil {

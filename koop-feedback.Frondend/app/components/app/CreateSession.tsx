@@ -8,6 +8,7 @@ import {Label} from "~/components/ui/label";
 import {Input} from "~/components/ui/input";
 import {Button} from "~/components/ui/button";
 import {useTranslation} from "~/context/Translation";
+import type {DefaultAPIResponse, POSTCreateSessionResponseData} from "../../../types/API";
 
 export function CreateSession() {
     const [name, setName] = useState("");
@@ -25,7 +26,7 @@ export function CreateSession() {
             }),
         });
 
-        const res = await req.json();
+        const res = await req.json() as DefaultAPIResponse<POSTCreateSessionResponseData>
         if (res.Success) {
             toast(translations?.toats.sessionCreated, {
                 type: "success",

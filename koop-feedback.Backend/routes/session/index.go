@@ -20,7 +20,12 @@ type POSTSession struct {
 func SessionPOST(ctx *gin.Context) {
 	db := db2.Database
 	bCtx := context.Background()
-	body := util.APIBindBody[POSTSession](ctx)
+	body, hasBody := util.APIBindBody[POSTSession](ctx)
+
+	if !hasBody {
+		util.APIErrorResponse[POSTSession](ctx, "INVALID_BODY", http.StatusConflict)
+		return
+	}
 
 	if len(body.HostName) <= 2 {
 		util.APIErrorResponse[any](ctx, "You name is to short. (min 2 characters)", http.StatusBadRequest)
@@ -30,7 +35,9 @@ func SessionPOST(ctx *gin.Context) {
 	authId := uuid.New().String()
 
 	err := gorm.G[models.User](db).Create(bCtx, &models.User{
-		APIAuthId:    authId,
+		APIAuth: &models.APIAuth{
+			Token: authId,
+		},
 		Name:         body.HostName,
 		HasSubmitted: false,
 		IsHost:       true,
@@ -58,6 +65,7 @@ func SessionPOST(ctx *gin.Context) {
 }
 
 type GETResponseSession struct {
+	Self    models.User
 	Session models.Session
 	Users   []models.User
 }
@@ -65,20 +73,11 @@ type GETResponseSession struct {
 func SessionGET(ctx *gin.Context) {
 	db := db2.Database
 	bCtx := context.Background()
-	authId, _ := ctx.Get("authId")
+	userId, _ := ctx.Get("userId")
 
-	user, err := gorm.G[models.User](db).Preload("Session", nil).Where("api_auth_id = ?", authId).First(bCtx)
+	user, err := gorm.G[models.User](db).Where("id = ?", userId).First(bCtx)
 	if err != nil {
 		util.APIErrorResponse[any](ctx, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if !user.IsHost {
-		ctx.JSON(200, util.DefaultAPIResponse[models.User]{
-			Success: true,
-			Message: "USER - SESSION",
-			Data:    user,
-		})
 		return
 	}
 
@@ -97,6 +96,7 @@ func SessionGET(ctx *gin.Context) {
 		Success: true,
 		Message: "SESSION - USERS",
 		Data: GETResponseSession{
+			Self:    user,
 			Session: session,
 			Users:   users,
 		},
