@@ -30,7 +30,7 @@ func main() {
 
 	// Gin Gonic
 	console.Log("Loading API")
-	gin.SetMode(gin.ReleaseMode)
+	// gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
 	console.Log("Loading Assets, Language and Frontend")
