@@ -1,4 +1,3 @@
-import type {Route} from "./+types/home";
 import {useState} from "react";
 import {Github, Plus} from "lucide-react";
 import JoinSession from "~/components/app/JoinSession";
@@ -6,6 +5,7 @@ import {CreateSession} from "~/components/app/CreateSession";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "~/components/ui/card";
 import {Button} from "~/components/ui/button";
 import {useTranslation} from "~/context/Translation";
+import type {Route} from "../../.react-router/types/app/routes/+types/page";
 
 export function meta({}: Route.MetaArgs) {
     return [

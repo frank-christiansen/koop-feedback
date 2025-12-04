@@ -23,12 +23,6 @@ export interface User {
     Name: string;
     IsHost: boolean;
     CreatedAt: Date;
-    UserVotedForThisUser: string[];
-    Feedback: {
-        Title: string;
-        Description: string;
-        CreatedAt: Date;
-    }[];
 }
 
 export default function SessionPage() {
@@ -40,49 +34,24 @@ export default function SessionPage() {
     useEffect(() => {
         const fetchSession = async () => {
             try {
-                const req = await fetch("/api/v1/session", {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
-
-                if (!req.ok) {
+                const authId = await cookieStore.get("authId")
+                if (!authId) {
                     window.location.href = "/";
                     return;
                 }
+
+                const req = await fetch("/api/v2/session", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": authId.value as string,
+                        "Content-Type": "application/json",
+                    },
+                });
                 const data = await req.json();
 
-                const userReq = await fetch("/api/v1/user?user=" + data.session.Host, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
+                console.log(data)
 
-                if (!userReq.ok) {
-                    window.location.href = "/";
-                    return;
-                }
-                const userData = await userReq.json();
-
-                const mockSession = {
-                    Users: data.session.Users,
-                    SessionId: data.session.SessionId,
-                    Code: data.session.Code,
-                    Host: userData.user,
-                    CreatedAt: data.session.CreatedAt,
-                    IsStarted: data.session.IsStarted,
-                    IsFinished: data.session.IsFinished,
-                };
-
-                if (mockSession.IsStarted) {
-                    window.location.href = "/feedback/run";
-                    return;
-                }
-
-                setUser(data.user);
-                setSession(mockSession);
+                setSession(data.Data.Session)
             } catch (error) {
                 toast.error(translations?.toats.failedToLoadSession);
                 console.error(error);

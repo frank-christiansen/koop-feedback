@@ -39,9 +39,9 @@ func SessionPOST(ctx *gin.Context) {
 			Code:       rand.Intn(1000),
 			IsStarted:  false,
 			IsFinished: false,
-			Users:      nil,
 		},
 	})
+
 	if err != nil {
 		util.APIErrorResponse[POSTSession](ctx, "Failed to create session!", http.StatusBadRequest)
 		return

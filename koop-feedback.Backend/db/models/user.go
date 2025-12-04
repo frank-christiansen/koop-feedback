@@ -11,7 +11,8 @@ type User struct {
 	HasSubmitted bool
 	IsHost       bool
 
-	Feedback  []Feedback
+	Feedback []Feedback
+
 	SessionID int
 	Session   Session
 }

@@ -12,7 +12,6 @@ import (
 )
 
 // TODO: Exclude AuthId in extra table
-// TODO: Maybe fix relation from Session to []User
 // TODO: Add API to Frontend...
 // TODO: Fixes, Improvements ...
 
@@ -44,6 +43,10 @@ func main() {
 		sessionV2API := v2API.Group("/session")
 		sessionV2API.POST("/", session.SessionPOST)
 		sessionV2API.GET("/", middleware.UserAuthMiddleware(), session.SessionGET)
+		sessionV2API.POST("/join", session.JoinSession)
+		sessionV2API.POST("/start", middleware.UserAuthMiddleware(), session.StartSession)
+		sessionV2API.POST("/end", middleware.UserAuthMiddleware(), session.EndSession)
+		// End Session
 
 		// Start User
 		// User Group

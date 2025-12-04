@@ -10,12 +10,12 @@ export interface TranslationContextType {
 const TranslationContext = createContext<TranslationContextType>({} as TranslationContextType)
 
 export default function TranslationContextProvider({children}: { children: React.ReactNode }) {
-    const [translations, setTranslations] = useState<FeedbackTranslations>({} as FeedbackTranslations);
+    const [translations, setTranslations] = useState<FeedbackTranslations>();
     const [language, setLanguage] = useState<string>("en");
 
     useEffect(() => {
         async function data() {
-
+            if (translations) return
 
             const browserLang = navigator.language.split("-")[0];
 
@@ -37,7 +37,7 @@ export default function TranslationContextProvider({children}: { children: React
             value={{
                 translations,
                 language
-            }}
+            } as TranslationContextType}
         >
             {children}
         </TranslationContext.Provider>

@@ -18,18 +18,15 @@ export function CreateSession() {
         if (!name.trim()) return;
         setIsCreating(true);
 
-        const req = await fetch("/api/v1/session", {
+        const req = await fetch("/api/v2/session", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
             body: JSON.stringify({
-                name: name.trim(),
+                HostName: name.trim(),
             }),
         });
 
         const res = await req.json();
-        if (res.success) {
+        if (res.Success) {
             toast(translations?.toats.sessionCreated, {
                 type: "success",
                 position: "top-right",
@@ -40,6 +37,11 @@ export function CreateSession() {
                 draggable: true,
                 progress: undefined,
             });
+
+            await cookieStore.set({
+                name: "authId",
+                value: res.Data.authId
+            })
 
             setTimeout(() => {
                 window.open("/feedback/start", "_self");

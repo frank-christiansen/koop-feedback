@@ -59,17 +59,24 @@ export default function JoinSession() {
                                 <Button
                                     onClick={async () => {
                                         if (userName.length > 0) {
-                                            const res = await fetch(`/api/v1/session/join`, {
+                                            const req = await fetch(`/api/v2/session/join`, {
                                                 method: "POST",
                                                 headers: {
                                                     "Content-Type": "application/json",
                                                 },
                                                 body: JSON.stringify({
-                                                    code: code,
-                                                    name: userName,
+                                                    Code: code,
+                                                    Name: userName,
                                                 }),
                                             });
-                                            if (res.status === 200) {
+                                            const res = await req.json();
+
+                                            await cookieStore.set({
+                                                name: "authId",
+                                                value: res.Data.authId
+                                            })
+
+                                            if (res.Success) {
                                                 window.location.href = "/feedback/start";
                                             } else {
                                                 toast.error(translations?.toats.errorByJoiningSession);

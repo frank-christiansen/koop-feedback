@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type GETResponseUserFeedback struct {
+type GETResponseFeedback struct {
 	Type        int
 	Description string
 }
@@ -36,17 +36,17 @@ func UserFeedbackGET(ctx *gin.Context) {
 	}
 
 	// Maybe i need to make this better...
-	var filteredFeedback []GETResponseUserFeedback
+	var filteredFeedback []GETResponseFeedback
 	for i := range len(feedback) {
 		f := feedback[i]
-		filteredFeedback = append(filteredFeedback, GETResponseUserFeedback{
+		filteredFeedback = append(filteredFeedback, GETResponseFeedback{
 			Type:        int(f.Type),
 			Description: f.Description,
 		})
 
 	}
 
-	ctx.JSON(200, util.DefaultAPIResponse[[]GETResponseUserFeedback]{
+	ctx.JSON(200, util.DefaultAPIResponse[[]GETResponseFeedback]{
 		Success: true,
 		Message: "FEEDBACK",
 		Data:    filteredFeedback,
@@ -54,9 +54,18 @@ func UserFeedbackGET(ctx *gin.Context) {
 	return
 }
 
-type POSTFeedback struct {
+type APIFeedback struct {
 	Type        models.FeedbackType
 	Description string
+}
+
+type POSTFeedback struct {
+	Feedback []APIFeedback
+}
+
+type POSTResponseFeedback struct {
+	Success int
+	Failed  int
 }
 
 func UserFeedbackPOST(ctx *gin.Context) {
@@ -68,6 +77,7 @@ func UserFeedbackPOST(ctx *gin.Context) {
 	auth, _ := ctx.Get("authId")
 	isSelf := util.DBCheckSelf(auth.(string), url.ID)
 	isSameSession := util.DBCheckSameSession(auth.(string), url.ID)
+	authUser, err := gorm.G[models.User](db).Where("api_auth_id = ?", auth).First(bCtx)
 
 	if !isSameSession {
 		util.APISameSessionError(ctx)
@@ -77,36 +87,63 @@ func UserFeedbackPOST(ctx *gin.Context) {
 		util.APISelfError(ctx)
 		return
 	}
-
-	if !models.IsFeedbackType(body.Type) {
-		util.APIErrorResponse[POSTFeedback](ctx, "Use a valid feedback type 0, 1.", http.StatusInternalServerError)
-		return
-	}
-	if len(body.Description) <= 10 {
-		util.APIErrorResponse[POSTFeedback](ctx, "You need to have more then 10 characters!", http.StatusInternalServerError)
+	if authUser.HasSubmitted {
+		util.APIErrorResponse[POSTFeedback](ctx, "HasSubmitted", http.StatusInternalServerError)
 		return
 	}
 
+	if len(body.Feedback) == 0 {
+		util.APIErrorResponse[POSTFeedback](ctx, "No Feedback found", http.StatusInternalServerError)
+		return
+	}
+
+	// User Check...
 	user, err := gorm.G[models.User](db).Where("id = ?", url.ID).First(bCtx)
 	if err != nil {
 		util.APIErrorResponse[POSTFeedback](ctx, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	err = gorm.G[models.Feedback](db).Create(bCtx, &models.Feedback{
-		Type:        body.Type,
-		Description: body.Description,
-		UserID:      int(user.ID),
-	})
+	successFeedback := 0
+	for i := range body.Feedback {
+		f := body.Feedback[i]
 
-	if err != nil {
-		util.APIErrorResponse[POSTFeedback](ctx, err.Error(), http.StatusBadRequest)
+		if !models.IsFeedbackType(f.Type) {
+			continue
+		}
+		if len(f.Description) <= 10 {
+			continue
+		}
+
+		err = gorm.G[models.Feedback](db).Create(bCtx, &models.Feedback{
+			Type:        f.Type,
+			Description: f.Description,
+			UserID:      int(user.ID),
+		})
+
+		if err != nil {
+			util.APIErrorResponse[POSTFeedback](ctx, err.Error(), http.StatusBadRequest)
+			continue
+		}
+		successFeedback++
+	}
+
+	if successFeedback != 0 {
+		_, err := gorm.G[models.User](db).Where("api_auth_id = ?", auth).Update(bCtx, "has_submitted", true)
+		if err != nil {
+			util.APIErrorResponse[POSTFeedback](ctx, err.Error(), http.StatusBadRequest)
+			return
+		}
+		ctx.JSON(200, util.DefaultAPIResponse[POSTResponseFeedback]{
+			Success: true,
+			Message: "FEEDBACK",
+			Data: POSTResponseFeedback{
+				Success: successFeedback,
+				Failed:  len(body.Feedback) - successFeedback,
+			},
+		})
 		return
 	}
 
-	ctx.JSON(200, util.DefaultAPIResponse[any]{
-		Success: true,
-		Message: "FEEDBACK",
-	})
-	return
+	util.APIErrorResponse[POSTFeedback](ctx, "No Feedback submitted. try again", http.StatusBadRequest)
 }
