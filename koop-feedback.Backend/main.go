@@ -17,7 +17,7 @@ func main() {
 	console.Log("Loading Environment")
 	err := godotenv.Load()
 	if err != nil {
-		return
+
 	}
 
 	// Database connection
