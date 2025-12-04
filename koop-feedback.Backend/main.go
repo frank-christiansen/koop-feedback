@@ -34,11 +34,11 @@ func main() {
 	r := gin.Default()
 
 	console.Log("Loading Assets, Language and Frontend")
-	r.Static("/assets", "../koop-feedback.Frondend/build/client/assets")
-	r.Static("/language", "../koop-feedback.Frondend/build/client/language")
-	r.StaticFile("/", "../koop-feedback.Frondend/build/client/index.html")
+	r.Static("/assets", "/app/koop-feedback.Frondend/build/client/assets")
+	r.Static("/language", "/app/koop-feedback.Frondend/build/client/language")
+	r.StaticFile("/", "/app/koop-feedback.Frondend/build/client/index.html")
 	r.NoRoute(func(c *gin.Context) {
-		c.File("../koop-feedback.Frondend/build/client/index.html")
+		c.File("/app/koop-feedback.Frondend/build/client/index.html")
 	})
 	console.Info("Done.")
 
