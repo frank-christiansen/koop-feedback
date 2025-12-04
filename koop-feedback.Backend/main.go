@@ -75,7 +75,7 @@ func main() {
 	}
 	console.Info("Done.")
 	console.Info("Works! Serving API at port 3000.")
-	err = r.Run(":3000")
+	err = r.Run("0.0.0.0:3000")
 	if err != nil {
 		console.Error("Failed")
 		panic(err.Error())
