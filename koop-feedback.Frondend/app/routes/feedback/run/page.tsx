@@ -70,7 +70,7 @@ export default function SessionPage() {
 
         const newFeedback = {
             Id: feedback.length + 1,
-            Type: feedbackType,
+            Type: parseInt(String(feedbackType)),
             Description: feedbackDescription,
             UserId: selectedUser.ID
         } as Feedback
@@ -141,8 +141,9 @@ export default function SessionPage() {
     if (data?.Self.HasSubmitted && !data.Self.IsHost) return <FeedbackDone/>
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-900 to-indigo-800">
-            <header className="py-4 px-6 border-b border-white/20 flex justify-between items-center">
+        <div className={"bg-gradient-to-br from-purple-900 to-indigo-800"}>
+            <header
+                className="py-4 px-6 border-b border-white/20 flex justify-between items-center">
                 <div className="flex items-center space-x-2 mt-1">
           <span className="text-white/80 text-sm">
             {translations?.runSession.header.sessionCode}: Started
@@ -153,21 +154,21 @@ export default function SessionPage() {
           </span>
                 </div>
             </header>
+            <div className="min-h-screen flex justify-center items-center">
+                <FeedbackModal
+                    feedbackType={feedbackType as unknown as string}
+                    setFeedbackType={type => setFeedbackType(type as unknown as FeedbackType)}
+                    selectedUser={selectedUser}
+                    setSelectedUser={user => setSelectedUser(user)}
+                    description={feedbackDescription}
+                    setDescription={(desc) => setFeedbackDescription(desc)}
+                    handleAddFeedback={handleAddFeedback}
+                />
 
-            <FeedbackModal
-                feedbackType={feedbackType as unknown as string}
-                setFeedbackType={type => setFeedbackType(type as unknown as FeedbackType)}
-                selectedUser={selectedUser}
-                setSelectedUser={user => setSelectedUser(user)}
-                description={feedbackDescription}
-                setDescription={(desc) => setFeedbackDescription(desc)}
-                handleAddFeedback={handleAddFeedback}
-            />
-
-            <main className="container mx-auto px-4 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2">
-                        <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+                <main className="container">
+                    <div className={"min-h-screen flex justify-center items-center"}>
+                        <Card
+                            className="bg-white/10 backdrop-blur-sm border-white/20 w-xl">
                             <CardHeader>
                                 <div className="flex justify-between items-center">
                                     <CardTitle className="text-white">
@@ -222,8 +223,8 @@ export default function SessionPage() {
                             </CardContent>
                         </Card>
                     </div>
-                </div>
-            </main>
+                </main>
+            </div>
         </div>
     )
 }
