@@ -22,7 +22,7 @@ export default function QrCode(
                     <Copy
                         onClick={async () => {
                             await navigator.clipboard.writeText(
-                                `https://${window.location.host}?join=${code}`
+                                `https://${window.location.host}?code=${code}`
                             );
                             toast.info(translations?.toats.copiedSessionCode)
                         }}
