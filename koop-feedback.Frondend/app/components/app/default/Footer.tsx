@@ -18,7 +18,7 @@ export default function Footer() {
                 </p>
                 <div className="flex items-center space-x-4">
                     <a
-                        href="https://xyzhub.link/pages/koop-feedback"
+                        href={translations.mainpage.footer.privacyUrl}
                         className="text-white/60 hover:text-white transition-colors"
                     >
                         {translations?.mainpage.footer.privacy}
@@ -33,7 +33,7 @@ export default function Footer() {
                 </div>
                 <div className="space-x-6 mt-4 md:mt-0 inline-flex">
                     <a
-                        href="https://github.com/frank-christiansen/koop-feedback"
+                        href={translations.mainpage.footer.imprintUrl}
                         className="text-white/60 hover:text-white transition-colors"
                     >
                         <span className="sr-only inline-flex">GitHub</span>

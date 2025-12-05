@@ -3,12 +3,12 @@
 import {useEffect, useState} from "react";
 import {useTranslation} from "~/context/Translation";
 import {Card, CardContent} from "~/components/ui/card";
-import {Button} from "~/components/ui/button";
-import {FeedbackType} from "../../../../types/FeedbackType";
 import type {Feedback} from "../../../../types/Feedback";
-import Loading from "~/components/app/Loading";
+import Loading from "~/components/app/default/Loading";
 import type {DefaultAPIResponse} from "../../../../types/API";
 import {Textarea} from "~/components/ui/textarea";
+import {FeedbackType} from "../../../../types/FeedbackType";
+import {Button} from "~/components/ui/button";
 
 export default function SessionPage() {
     const [isLoading, setIsLoading] = useState(true);
@@ -23,19 +23,40 @@ export default function SessionPage() {
                 window.location.href = "/";
                 return;
             }
-            const req = await fetch("/api/v2/user/feedback", {
-                method: "GET",
-                headers: {
-                    "Authorization": authIdCookie.value as string,
-                    "Content-Type": "application/json",
-                },
-            });
-            const feedback = await req.json() as DefaultAPIResponse<Feedback[]>
+            try {
+                const req = await fetch("/api/v2/user/feedback", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": authIdCookie.value as string,
+                        "Content-Type": "application/json",
+                    },
+                });
+                if (!req.ok) {
+                    setFeedbacks(null)
+                    setIsLoading(false)
+                    return
+                }
+                const feedback = await req.json() as DefaultAPIResponse<Feedback[]>
 
-            if (feedback.Message == "NotActive") return window.open("/feedback/run", "_self")
+                if (!feedback.Success) {
+                    setFeedbacks(null)
+                    setIsLoading(false)
+                    return
+                }
 
-            setFeedbacks(feedback.Data);
-            setIsLoading(false);
+                if (feedback.Message == "NotActive") return window.open("/feedback/run", "_self")
+                if (feedback.Data[0].Description.length < 2) {
+                    setFeedbacks(null)
+                    setIsLoading(false)
+                    return
+                }
+
+                setFeedbacks(feedback.Data);
+                setIsLoading(false);
+            } catch (e) {
+                setFeedbacks(null)
+                setIsLoading(false)
+            }
         };
         fetchSession();
     }, []);
@@ -51,17 +72,26 @@ export default function SessionPage() {
                 "Content-Type": "application/json",
             },
         });
-        feedbacks &&
 
         window.open("/", "_self")
     }
 
     return (
         <div className="min-h-screen p-6 bg-gradient-to-br from-purple-900 to-indigo-800 text-white">
-            <div className="flex items-center justify-center mb-6">
-                <h1 className="text-3xl font-bold text-white">
-                    {translations?.endSession.title}
-                </h1>
+            <div className={"flex flex-col mb-10"}>
+                <div className="flex items-center justify-center mb-6">
+                    <h1 className="text-3xl font-bold text-white">
+                        {translations?.endSession.title}
+                    </h1>
+                </div>
+                <div className="mt-6 flex flex-col sm:flex-row sm:space-x-4 items-center justify-center">
+                    <Button
+                        className="mt-6 sm:mt-0 bg-purple-800 hover:bg-purple-700 text-white w-full sm:w-auto hover:shadow-lg translations duration-300 ease-in-out border-1 border-white/20 hover:border-white/30 hover:cursor-pointer"
+                        onClick={() => logoutSession()}
+                    >
+                        Logout
+                    </Button>
+                </div>
             </div>
             {(feedbacks == null || !feedbacks || feedbacks.length === 0) ? (
                 <p className="text-center text-white/60 text-xl">
@@ -70,7 +100,14 @@ export default function SessionPage() {
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {feedbacks
-                        .sort((a, b) => (a.Type == FeedbackType.Positive ? -1 : 1))
+                        .sort((a, b) => {
+
+                            if (feedbacks.length < 1) {
+                                return 0
+                            }
+
+                            return a.Type == FeedbackType.Positive ? 0 : 1
+                        })
                         .map((fb) => {
                             const isPositive = fb.Type == FeedbackType.Positive;
                             const cardColor = isPositive ? "bg-green-500" : "bg-yellow-500";
@@ -93,14 +130,6 @@ export default function SessionPage() {
                         })}
                 </div>
             )}
-            <div className="mt-6 flex flex-col sm:flex-row sm:space-x-4 items-center justify-center">
-                <Button
-                    className="mt-6 sm:mt-0 bg-purple-800 hover:bg-purple-700 text-white w-full sm:w-auto hover:shadow-lg translations duration-300 ease-in-out border-1 border-white/20 hover:border-white/30 hover:cursor-pointer"
-                    onClick={() => logoutSession()}
-                >
-                    Logout
-                </Button>
-            </div>
         </div>
-    );
+    )
 }

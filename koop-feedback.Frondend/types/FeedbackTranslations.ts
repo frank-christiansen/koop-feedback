@@ -13,7 +13,9 @@ export interface FeedbackTranslations {
         };
         footer: {
             imprint: string;
+            imprintUrl: string
             privacy: string;
+            privacyUrl: string
         };
     };
     createSession: {

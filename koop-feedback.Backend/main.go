@@ -7,6 +7,7 @@ import (
 	"koopfeedback/routes"
 	"koopfeedback/routes/session"
 	"koopfeedback/routes/user"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -34,11 +35,11 @@ func main() {
 	r := gin.Default()
 
 	console.Log("Loading Assets, Language and Frontend")
-	r.Static("/assets", "/app/koop-feedback.Frondend/build/client/assets")
-	r.Static("/language", "/app/koop-feedback.Frondend/build/client/language")
-	r.StaticFile("/", "/app/koop-feedback.Frondend/build/client/index.html")
+	r.Static("/assets", os.Getenv("FRONTEND_BUILD")+"/client/assets")
+	r.Static("/language", os.Getenv("FRONTEND_BUILD")+"/client/language")
+	r.StaticFile("/", os.Getenv("FRONTEND_BUILD")+"/client/index.html")
 	r.NoRoute(func(c *gin.Context) {
-		c.File("/app/koop-feedback.Frondend/build/client/index.html")
+		c.File(os.Getenv("FRONTEND_BUILD") + "/client/index.html")
 	})
 	console.Info("Done.")
 

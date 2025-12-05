@@ -8,9 +8,19 @@ import {Label} from "~/components/ui/label";
 import {Input} from "~/components/ui/input";
 import {Button} from "~/components/ui/button";
 import {useTranslation} from "~/context/Translation";
-import type {DefaultAPIResponse, POSTCreateSessionResponseData} from "../../../types/API";
+import type {DefaultAPIResponse, POSTCreateSessionResponseData} from "../../../../types/API";
 
-export function CreateSession() {
+export function CreateSession(
+    {
+        isOpen,
+        onClose
+    }: {
+        isOpen: boolean,
+        onClose: () => void
+    }) {
+
+    if (!isOpen) return
+
     const [name, setName] = useState("");
     const [isCreating, setIsCreating] = useState(false);
     const {translations} = useTranslation()

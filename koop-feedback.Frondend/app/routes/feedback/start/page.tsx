@@ -1,15 +1,15 @@
 "use client";
 
-import {Copy, Crown, Trash,} from "lucide-react";
+import {Copy,} from "lucide-react";
 import {useEffect, useState} from "react";
 import {toast} from "react-toastify";
 import {useTranslation} from "~/context/Translation";
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "~/components/ui/card";
 import {Button} from "~/components/ui/button";
 import type {DefaultAPIResponse, GETSessionResponseData} from "../../../../types/API";
-import type {User} from "../../../../types/User";
-import Loading from "~/components/app/Loading";
-import Session404 from "~/components/app/Session404";
+import Loading from "~/components/app/default/Loading";
+import Session404 from "~/components/app/default/Session404";
+import Users from "~/components/app/start/Users";
+import QrCode from "~/components/app/start/QrCode";
 
 export default function SessionPage() {
     const [data, setData] = useState<GETSessionResponseData | null>(null);
@@ -64,7 +64,7 @@ export default function SessionPage() {
             method: "POST",
             headers: {
                 "Authorization": authId as string,
-                "Content-Type": "application/json",
+                "Content-Type": "appl{/* Header */}ication/json",
             },
         });
 
@@ -90,7 +90,6 @@ export default function SessionPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-900 to-indigo-800">
-            {/* Header */}
             <header className="py-4 px-6 border-b border-white/20 flex justify-between items-center">
                 <div onClick={copySessionCode} className={"cursor-pointer"}>
                     <div className="flex items-center space-x-2 mt-1">
@@ -107,119 +106,16 @@ export default function SessionPage() {
                 </div>
             </header>
 
-            {/* Main Content */}
             <main className="container mx-auto px-4 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* QR Code for code */}
-                    <div className="lg:col-span-1">
-                        <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-                            <CardHeader>
-                                <CardTitle className="text-white cursor-pointer">
-                                    {translations?.sessions.qrcode.title} -{" "}
-                                    <Copy
-                                        onClick={async () => {
-                                            await navigator.clipboard.writeText(
-                                                `http://${window.location.host}?join=${data?.Session.Code}`
-                                            );
-                                            toast.info(translations?.toats.copiedSessionCode)
-                                        }}
-                                        className="inline-flex"
-                                        height={15}
-                                        width={15}
-                                    ></Copy>
-                                </CardTitle>
-                                <CardDescription className="text-white/60">
-                                    {translations?.sessions.qrcode.subtitle}
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex justify-center items-center h-48">
-                                <div className="bg-white/10 p-4 rounded-lg shadow-lg">
-                                    <img
-                                        src={`https://api.qrserver.com/v1/create-qr-code/?data=http://${window.location.host}?code=${data.Session.Code}&size=1000x1000`}
-                                        alt="QR Code"
-                                        className="w-32 h-32"
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Participants Section */}
-                    <div className="lg:col-span-2">
-                        <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-                            <CardHeader>
-                                <div className="flex justify-between items-center">
-                                    <CardTitle className="text-white">
-                                        {translations?.sessions.member} ({data.Users.length})
-                                    </CardTitle>
-                                    {
-                                        (!data.Session.IsStarted && data.Self.IsHost) && (
-                                            <Button
-                                                variant="default"
-                                                className="bg-blue-500 text-white hover:bg-blue-600"
-                                                onClick={startSession}
-                                            >
-                                                {translations?.sessions.startSession.button}
-                                            </Button>
-                                        )
-                                    }
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    {/* Other participants */}
-                                    {data.Users.map((user: User) => (
-                                        <div
-                                            key={user.ID}
-                                            className="flex items-center p-3 bg-white/5 rounded-lg"
-                                        >
-                                            <div className="ml-4 flex-1">
-                                                <h3 className="text-white font-medium">
-                                                    {user.Name}
-                                                </h3>
-                                            </div>
-                                            {user.IsHost ? (
-                                                <Crown className="text-yellow-400 h-5 w-5"/>
-                                            ) : (
-                                                data.Self.IsHost && (
-                                                    <Trash
-                                                        onClick={() => {
-                                                            fetch(
-                                                                `/api/v2/user/${user.ID}`,
-                                                                {
-                                                                    method: "DELETE",
-                                                                    headers: {
-                                                                        "Authorization": authId as string,
-                                                                        "Content-Type": "application/json",
-                                                                    },
-                                                                }
-                                                            )
-                                                                .then((res) => {
-                                                                    if (!res.ok) {
-                                                                        throw new Error(
-                                                                            "Failed to remove user"
-                                                                        );
-                                                                    }
-                                                                    return res.json();
-                                                                })
-                                                                .catch((error) => {
-                                                                    toast(error.message, {
-                                                                        type: "error",
-                                                                        position: "top-right",
-                                                                        autoClose: 5000,
-                                                                    });
-                                                                });
-                                                        }}
-                                                        className="text-red-400 h-5 w-5 cursor-pointer"
-                                                    />
-                                                )
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                    <QrCode
+                        code={data.Session.Code}
+                    />
+                    <Users
+                        startSession={startSession}
+                        authId={authId || ""}
+                        data={data}
+                    ></Users>
                 </div>
             </main>
         </div>
