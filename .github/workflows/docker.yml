@@ -21,16 +21,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
-        with:
-          go-version: '1.25'
-      - run: go version
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - run: cd koop-feedback.Frondend && bun i && bun run build
-      - run: cd koop-feedback.Backend && go get && go build
 
       - uses: docker/login-action@v3
         with:
