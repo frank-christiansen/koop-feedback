@@ -5,9 +5,11 @@ COPY . .
 
 FROM oven/bun:canary-alpine as build1
 
-RUN cd /koop-feedback.Frondend
+RUN cd koop-feedback.Frondend
 RUN bun install
 RUN bun run build
+RUN rm koop-feedback.Frondend/node_modules
+
 
 FROM golang:tip-alpine3.23 as build2
 
