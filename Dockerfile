@@ -1,24 +1,27 @@
-FROM alpine:3.23.0 as base
+FROM alpine:3.23.0 AS base
 WORKDIR /app
-COPY . .
 
 
-FROM oven/bun:canary-alpine as build1
+FROM node:lts-alpine3.23 AS buildfrontend
+WORKDIR /koop-feedback.Frondend
 
-RUN cd koop-feedback.Frondend
-RUN bun install
-RUN bun run build
-RUN rm koop-feedback.Frondend/node_modules
+COPY /koop-feedback.Frondend/ .
 
+RUN npm install
+RUN npm run build
 
-FROM golang:tip-alpine3.23 as build2
+FROM golang:tip-alpine3.23 AS buildbackend
+WORKDIR /koop-feedback.Backend
 
-RUN cd koop-feedback.Backend
+COPY /koop-feedback.Backend/ .
+
 RUN go build
 
-ENV FRONTEND_BUILD=/app/koop-feedback.Frondend/build
-
-
 FROM base AS final
-WORKDIR /app
-CMD ["./koop-feedback.Backend/koopfeedback"]
+
+ENV FRONTEND_BUILD=/app/frontend
+
+COPY --from=buildbackend /koop-feedback.Backend/koopfeedback .
+COPY --from=buildfrontend /koop-feedback.Frondend/build/ ./frontend
+
+CMD ["./koopfeedback"]
